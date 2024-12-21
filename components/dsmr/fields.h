@@ -271,7 +271,7 @@ namespace dsmr
     DEFINE_FIELD(energy_returned_tariff4, FixedValue, ObisId(1, 0, 2, 8, 4), FixedField, units::kWh, units::Wh);
 
     /* Absolute active energy (A+) total [kWh] */
-    //DEFINE_FIELD(energy_absolute, FixedValue, ObisId(1, 0, 15, 8, 0), FixedField, units::kWh, units::Wh);
+    DEFINE_FIELD(energy_absolute, FixedValue, ObisId(1, 0, 15, 8, 0), FixedField, units::kWh, units::Wh);
     /* Absolute active energy (A+) in tariff T1 [kWh] */
     DEFINE_FIELD(energy_absolute_tariff1, FixedValue, ObisId(1, 0, 15, 8, 1), FixedField, units::kWh, units::Wh);
     /* Absolute active energy (A+) in tariff T2 [kWh] */
@@ -321,6 +321,7 @@ namespace dsmr
 
     /* current status fo the breaker ON/OFF */
     DEFINE_FIELD(breaker_status, String, ObisId(0, 0, 96, 50, 68), StringField, 2, 3);
+    DEFINE_FIELD(breaker_status_b, String, ObisId(0, 0, 96, 3, 10), StringField, 2, 3);
 
     /* Actual electricity power delivered (+P) in 1 Watt resolution 1.7.0 */
     DEFINE_FIELD(power_delivered, FixedValue, ObisId(1, 0, 1, 7, 0), FixedField, units::kW, units::W);
@@ -364,13 +365,10 @@ namespace dsmr
     /* 14.7.0	Frequency [Hz] */
     DEFINE_FIELD(frequency, FixedValue, ObisId(1, 0, 14, 7, 0), FixedField, units::Hz, units::Hz);
 
-    // /* 15.8.0	Absolute active energy (A+) total [kWh] */
-    DEFINE_FIELD(absolute_active_energy, FixedValue, ObisId(1, 0, 15, 8, 0), FixedField, units::kWh, units::Wh);
-
     /* The actual threshold Electricity in kW. 17.0.0 - Removed in 4.0.7 / 4.2.2 / 5.0 */
     DEFINE_FIELD(electricity_threshold_l1, FixedValue, ObisId(1, 0, 31, 4, 0), FixedField, units::A, units::mA);
     DEFINE_FIELD(electricity_threshold_l2, FixedValue, ObisId(1, 0, 51, 4, 0), FixedField, units::A, units::mA);
-	DEFINE_FIELD(electricity_threshold_l3, FixedValue, ObisId(1, 0, 71, 4, 0), FixedField, units::A, units::mA);
+    DEFINE_FIELD(electricity_threshold_l3, FixedValue, ObisId(1, 0, 71, 4, 0), FixedField, units::A, units::mA);
 		
     /* Switch position Electricity (in/out/enabled). Removed in 4.0.7 / 4.2.2 / 5.0 */
     DEFINE_FIELD(electricity_switch_position, uint8_t, ObisId(0, 0, 96, 3, 10), IntField, units::none);
