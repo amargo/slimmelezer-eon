@@ -20,7 +20,7 @@ https://drive.google.com/file/d/10OlD0Aoxti3LFLMXj2cScBJ9jfaaUWNJ/view
   vonatkozóan.
   
 #### slimmelezer_napelemes_2024.yaml:
-  2024 előtt telepített (felprogramozott) mérők által küldött adatok feldolgozására alkalmas alapbeállítás. Tartalmazza az 
+  2024 után telepített (felprogramozott) mérők által küldött adatok feldolgozására alkalmas alapbeállítás. Tartalmazza az 
   összes napelemes rendszer mellett releváns mérési adatot, a meddő teljesítmények és energiákat is beleértve.
   Ezen kívül tartalmaz egy sciptet is, ami egy egyszerű pillanatnyi egyenleget von a betáplált és vételezett teljesítményre
   vonatkozóan.
