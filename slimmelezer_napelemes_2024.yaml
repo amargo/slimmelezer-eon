@@ -39,13 +39,13 @@ logger:
   #   web_server: INFO
   #   uart: INFO
   #   scheduler: INFO
-  
+
 # Enable Home Assistant API
 api:
 
 ota:
   platform: esphome
-  
+
 web_server:
   port: 80
 
@@ -77,7 +77,7 @@ sensor:
     energy_delivered_tariff4:
       name: "Hatásos vételezett energia (+A) tarifa 4"
       accuracy_decimals: 3
-    
+
     power_delivered_l1:
       name: "Pillanatnyi teljesítmény L1 - hatásos vételezett (+A)"
       accuracy_decimals: 3
@@ -87,7 +87,7 @@ sensor:
     power_delivered_l3:
       name: "Pillanatnyi teljesítmény L3 - hatásos vételezett (+A)"
       accuracy_decimals: 3
-    
+
     power_returned_l1:
       name: "Pillanatnyi teljesítmény L1 - hatásos betáplált (-A)"
       accuracy_decimals: 3
@@ -97,7 +97,7 @@ sensor:
     power_returned_l3:
       name: "Pillanatnyi teljesítmény L3 - hatásos betáplált (-A)"
       accuracy_decimals: 3
-    
+
     power_delivered:
       name: "Pillanatnyi teljesítmény - hatásos vételezett (+A)"
       accuracy_decimals: 3
@@ -110,24 +110,24 @@ sensor:
       id: power_produced
       on_value:
         - script.execute: update_power_balance
-  
+
     energy_returned:
       name: "Hatásos betáplált energia (-A)"
       accuracy_decimals: 3
     energy_returned_tariff1:
       name: "Hatásos betáplált energia (-A) tarifa 1"
-      accuracy_decimals: 3  
+      accuracy_decimals: 3
     energy_returned_tariff2:
       name: "Hatásos betáplált energia (-A) tarifa 2"
-      accuracy_decimals: 3  
+      accuracy_decimals: 3
     # 3-4 egyelőre inaktív (2023.03.27)
     energy_returned_tariff3:
       name: "Hatásos betáplált energia (-A) tarifa 3"
-      accuracy_decimals: 3  
+      accuracy_decimals: 3
     energy_returned_tariff4:
       name: "Hatásos betáplált energia (-A) tarifa 4"
       accuracy_decimals: 3
-    
+
     electricity_tariff:
       name: "Aktuális tarifa"
     # Frekvencia 2024-től kikerült
@@ -136,7 +136,7 @@ sensor:
     #  accuracy_decimals: 2
     energy_absolute:
       name: "Összes hatásos energia - vételezett és betáplált"
- 
+
     voltage_l1:
       name: "Fázisfeszültség L1"
     voltage_l2:
@@ -165,7 +165,7 @@ sensor:
     instantaneous_power_factor_l3:
       name: "Teljesítménytényező L3"
       device_class: power_factor
-    
+
     reactive_power_qi:
       name: "Pillanatnyi teljesítmény - meddő (QI)"
       device_class: reactive_power
@@ -178,7 +178,7 @@ sensor:
     reactive_power_qiv:
       name: "Pillanatnyi teljesítmény - meddő (QIV)"
       device_class: reactive_power
-    
+
     energy_positive_reactive:
       name: "Meddő energia - vételezett (+R)"
     energy_negative_reactive:
@@ -191,24 +191,24 @@ sensor:
       name: "Meddő energia (QIII)"
     reactive_energy_qiv:
       name: "Meddő energia (QIV)"
- # Mérőóra áramkorlátozó felügyeletének beállítási értéke
+    # Mérőóra áramkorlátozó felügyeletének beállítási értéke
     fuse_supervision_l1:
       name: "Áramkorlátozó felügyelet küszöbértéke L1"
     fuse_supervision_l2:
       name: "Áramkorlátozó felügyelet küszöbértéke L2"
     fuse_supervision_l3:
       name: "Áramkorlátozó felügyelet küszöbértéke L3"
-    
+
     electricity_threshold:
       name: "Áramkorlátozó küszöbértéke"
- 
+
   - platform: uptime
     name: "SlimmeLezer üzemidő"
     device_class: duration
   - platform: wifi_signal
     name: "SlimmeLezer Wi-Fi jel"
     update_interval: 60s
-    
+
   - platform: template
     name: "Pillanatnyi teljesítmény - hatásos eredő"
     id: power_balance
@@ -216,7 +216,7 @@ sensor:
     state_class: measurement
     device_class: power
     accuracy_decimals: 3
-    
+
 text_sensor:
   - platform: wifi_info
     ip_address:
@@ -228,23 +228,23 @@ text_sensor:
     bssid:
       name: "SlimmeLezer Wi-Fi BSSID"
       update_interval: 60s
- 
+
   - platform: dsmr
     #identification:
     #  name: "COSEM logikai készüléknév"
     #equipment_id:
     #  name: "Mérő gyáriszám"
-    
+
     #Mérőtől függő konfig (valamelyik működik)
     breaker_status:
       name: "Megszakító státusz"
     breaker_status_b:
-      name: "Megszakító státusz"      
- 
+      name: "Megszakító státusz"
+
   - platform: version
     name: "ESPHome verzió és build"
     hide_timestamp: false
-   
+
 script:
   - id: update_power_balance
     mode: single

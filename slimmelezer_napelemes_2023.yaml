@@ -39,7 +39,7 @@ logger:
   #   web_server: INFO
   #   uart: INFO
   #   scheduler: INFO
-  
+
 # Enable Home Assistant API
 api:
 
@@ -89,24 +89,24 @@ sensor:
       id: power_produced
       on_value:
         - script.execute: update_power_balance
-  
+
     energy_returned:
       name: "Hatásos betáplált energia (-A)"
       accuracy_decimals: 3
     energy_returned_tariff1:
       name: "Hatásos betáplált energia (-A) tarifa 1"
-      accuracy_decimals: 3  
+      accuracy_decimals: 3
     energy_returned_tariff2:
       name: "Hatásos betáplált energia (-A) tarifa 2"
-      accuracy_decimals: 3  
+      accuracy_decimals: 3
     # 3-4 egyelőre inaktív (2023.03.27)
     #energy_returned_tariff3:
     #  name: "Hatásos betáplált energia (-A) tarifa 3"
-    #  accuracy_decimals: 3  
+    #  accuracy_decimals: 3
     #energy_returned_tariff4:
     #  name: "Hatásos betáplált energia (-A) tarifa 4"
     #  accuracy_decimals: 3
-    
+
     electricity_tariff:
       name: "Aktuális tarifa"
     frequency:
@@ -114,7 +114,7 @@ sensor:
       accuracy_decimals: 2
     energy_absolute:
       name: "Összes hatásos energia - vételezett és betáplált"
- 
+
     voltage_l1:
       name: "Fázisfeszültség L1"
     voltage_l2:
@@ -143,7 +143,7 @@ sensor:
     instantaneous_power_factor_l3:
       name: "Teljesítménytényező L3"
       device_class: power_factor
-    
+
     reactive_power_qi:
       name: "Pillanatnyi teljesítmény - meddő (QI)"
       device_class: reactive_power
@@ -156,7 +156,7 @@ sensor:
     reactive_power_qiv:
       name: "Pillanatnyi teljesítmény - meddő (QIV)"
       device_class: reactive_power
-    
+
     energy_positive_reactive:
       name: "Meddő energia - vételezett (+R)"
     energy_negative_reactive:
@@ -169,21 +169,21 @@ sensor:
       name: "Meddő energia (QIII)"
     reactive_energy_qiv:
       name: "Meddő energia (QIV)"
- # Mérőóra maximális áramerősséghatároló beállítása
-    #electricity_threshold_l1:
-    #  name: "Limiter határérték L1"
-    #electricity_threshold_l2:
-    #  name: "Limiter határérték L2"
-    #electricity_threshold_l3:
-    #  name: "Limiter határérték L3"
- 
+  # Mérőóra maximális áramerősséghatároló beállítása
+  #electricity_threshold_l1:
+  #  name: "Limiter határérték L1"
+  #electricity_threshold_l2:
+  #  name: "Limiter határérték L2"
+  #electricity_threshold_l3:
+  #  name: "Limiter határérték L3"
+
   - platform: uptime
     name: "SlimmeLezer üzemidő"
     device_class: duration
   - platform: wifi_signal
     name: "SlimmeLezer Wi-Fi jel"
     update_interval: 60s
-    
+
   - platform: template
     name: "Pillanatnyi teljesítmény - hatásos eredő"
     id: power_balance
@@ -191,7 +191,7 @@ sensor:
     state_class: measurement
     device_class: power
     accuracy_decimals: 3
-    
+
 text_sensor:
   - platform: wifi_info
     ip_address:
@@ -203,7 +203,7 @@ text_sensor:
     bssid:
       name: "SlimmeLezer Wi-Fi BSSID"
       update_interval: 60s
- 
+
   - platform: dsmr
     #identification:
     #  name: "COSEM logikai készüléknév"
@@ -211,11 +211,11 @@ text_sensor:
     #  name: "Mérő gyáriszám"
     breaker_status:
       name: "Megszakító státusz"
- 
+
   - platform: version
     name: "ESPHome verzió és build"
     hide_timestamp: false
-   
+
 script:
   - id: update_power_balance
     mode: single
