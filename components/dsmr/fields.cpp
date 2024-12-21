@@ -173,14 +173,14 @@ constexpr char electricity_tariff::name[];
 constexpr ObisId breaker_status::id;
 constexpr char breaker_status::name[];
 
+constexpr ObisId breaker_status_b::id;
+constexpr char breaker_status_b::name[];
+
 constexpr ObisId power_delivered::id;
 constexpr char power_delivered::name[];
 
 constexpr ObisId power_returned::id;
 constexpr char power_returned::name[];
-
-constexpr ObisId absolute_active_energy::id;
-constexpr char absolute_active_energy::name[];
 
 // constexpr ObisId electricity_threshold::id;
 // constexpr char electricity_threshold::name[];
