@@ -112,7 +112,7 @@ sensor:
     frequency:
       name: "Frekvencia"
       accuracy_decimals: 2
-    absolute_active_energy:
+    energy_absolute:
       name: "Összes hatásos energia - vételezett és betáplált"
  
     voltage_l1:
