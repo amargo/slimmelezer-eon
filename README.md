@@ -13,11 +13,18 @@ https://drive.google.com/file/d/10OlD0Aoxti3LFLMXj2cScBJ9jfaaUWNJ/view
   Alapvető információkat továbbít a magyar mérők jelenlegi (2023.10.03) beállítása szerint, hálózatra termelő napelemes
   rendszer nélküli mérőkhöz ajánlott, ahol nincs hálózatba betáplálás és nem fontosak a meddő teljesítmények és energiák.
    
-#### slimmelezer_napelemes.yaml:
-  Tartalmazza az összes napelemes rendszer mellett releváns mérési adatot, a meddő teljesítmények és energiákat is beleértve.
+#### slimmelezer_napelemes_2023.yaml:
+  2024 előtt telepített (felprogramozott) mérők által küldött adatok feldolgozására alkalmas alapbeállítás. Tartalmazza az 
+  összes napelemes rendszer mellett releváns mérési adatot, a meddő teljesítmények és energiákat is beleértve.
   Ezen kívül tartalmaz egy sciptet is, ami egy egyszerű pillanatnyi egyenleget von a betáplált és vételezett teljesítményre
   vonatkozóan.
-   
+  
+#### slimmelezer_napelemes_2024.yaml:
+  2024 előtt telepített (felprogramozott) mérők által küldött adatok feldolgozására alkalmas alapbeállítás. Tartalmazza az 
+  összes napelemes rendszer mellett releváns mérési adatot, a meddő teljesítmények és energiákat is beleértve.
+  Ezen kívül tartalmaz egy sciptet is, ami egy egyszerű pillanatnyi egyenleget von a betáplált és vételezett teljesítményre
+  vonatkozóan.
+  
   Azon mérési adatokat tartalmazó sorok elé, amiket nem szeretnénk, hogy továbbítson a slimmelezer a HomeAssistant felé,
   célszerűen egy # jelet téve inaktiválhatjuk a fordító számára, így azok nem fognak megjelenni a HomeAssistantban entitásként.
   Értelemszerűen, ha valamit szeretnénk még megjeleníteni a meglévő példa yaml fájlokhoz képest, akkor azoknál ki kell
