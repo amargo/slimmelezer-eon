@@ -252,16 +252,21 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional("electricity_threshold_l1"): sensor.sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=0,
-            device_class=DEVICE_CLASS_POWER,
+            device_class=DEVICE_CLASS_CURRENT,
         ),
         cv.Optional("electricity_threshold_l2"): sensor.sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=0,
-            device_class=DEVICE_CLASS_POWER,
+            device_class=DEVICE_CLASS_CURRENT,
         ),
         cv.Optional("electricity_threshold_l3"): sensor.sensor_schema(
             unit_of_measurement=UNIT_AMPERE,
             accuracy_decimals=0,
+            device_class=DEVICE_CLASS_CURRENT,
+        ),
+        cv.Optional("electricity_threshold"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT,
+            accuracy_decimals=3,
             device_class=DEVICE_CLASS_POWER,
         ),
         cv.Optional("electricity_switch_position"): sensor.sensor_schema(
