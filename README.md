@@ -24,11 +24,21 @@ https://drive.google.com/file/d/10OlD0Aoxti3LFLMXj2cScBJ9jfaaUWNJ/view
   összes napelemes rendszer mellett releváns mérési adatot, a meddő teljesítmények és energiákat is beleértve.
   Ezen kívül tartalmaz egy sciptet is, ami egy egyszerű pillanatnyi egyenleget von a betáplált és vételezett teljesítményre
   vonatkozóan.
+
+  <ins>Mérők az újabb konfigurációval:</ins>  
+   • Wasion aMeter100  
+   • Wasion aMeter300  
+   • Sagemcom MA110M  
+   • Sagemcom MA309M  
+   • Sanxing SX601 S12U26  
+   • Sanxing SX631 S34U28  
+   • Holley DDSD285 (2024-től)  
+   • Holley DTSD545 (2024-től)  
   
   Azon mérési adatokat tartalmazó sorok elé, amiket nem szeretnénk, hogy továbbítson a slimmelezer a HomeAssistant felé,
   célszerűen egy # jelet téve inaktiválhatjuk a fordító számára, így azok nem fognak megjelenni a HomeAssistantban entitásként.
   Értelemszerűen, ha valamit szeretnénk még megjeleníteni a meglévő példa yaml fájlokhoz képest, akkor azoknál ki kell
-  törölni a # jelet a sorok elől, ügyelve a szóközökkel való megfelelő pozíciónálás megőrzésére.
+  törölni a # jelet a sorok elől, ügyelve a szóközökkel való megfelelő pozícionálás megőrzésére.
   
   Magyarországi mérők sajátosságai miatt a következő paraméterek megadása kötelező a konfigurációs fájlban, különben nem lesz
   képes feldolgozni és továbbítani a mérők által küldött telegram üzenetet: (alapból tartalmazza mindegyik példa yaml fájl)
