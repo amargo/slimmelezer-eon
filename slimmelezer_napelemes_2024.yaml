@@ -192,11 +192,11 @@ sensor:
     reactive_energy_qiv:
       name: "Meddő energia (QIV)"
     # Mérőóra áramkorlátozó felügyeletének beállítási értéke
-    fuse_supervision_l1:
+    electricity_threshold_l1:
       name: "Áramkorlátozó felügyelet küszöbértéke L1"
-    fuse_supervision_l2:
+    electricity_threshold_l2:
       name: "Áramkorlátozó felügyelet küszöbértéke L2"
-    fuse_supervision_l3:
+    electricity_threshold_l3:
       name: "Áramkorlátozó felügyelet küszöbértéke L3"
 
     electricity_threshold:
