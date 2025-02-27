@@ -2,12 +2,10 @@
 
 ### Készült Slimmelezer.E.ON - [4D4M](https://prohardver.hu/tag/4d4m.html)
 
-https://drive.google.com/file/d/10OlD0Aoxti3LFLMXj2cScBJ9jfaaUWNJ/view
+1. ESPHome platform szerinti telepítés esetén a [mindig aktuális útmutató](https://esphome.io/guides/getting_started_hassio) 
+alapján létre kell hozni a slimmelezer konfiguráció fogadására alkalmas "üres" eszközt.
 
-1. A "components" mappát és teljes tartalmát át kell másolni a HomeAssistant szerver "ESPHome" mappájába
-   A célhelyen érvényes elérési útja a következő lesz: /config/esphome/components
-
-2. Ki kell választani a nekünk megfelelő yaml konfigurációt vagy egyénileg szerkeszteni bármelyik mellékelt yaml fájlt
+2. Az így kapott yaml fájlunk tartalmát az igényeinknek megfelelő, itt felsorolt valamelyik yaml fájl szerint ki kell egészíteni:
    
 #### slimmelezer_alap.yaml:
   Alapvető információkat továbbít a magyar mérők jelenlegi (2023.10.03) beállítása szerint, hálózatra termelő napelemes
@@ -51,4 +49,5 @@ dsmr:
 ```
 
 #### megjegyzés: 
-A csomag tartalmazza még slimmelezerre direktben(OTA, USB) feltölthető firmware-ek lefordított binárisait is, viszont ezek használata nem javasolt, mert frissítések alkalmával elveszhet a meglévő konfiguráció.
+Az itt elérhető csomag tartalmazza még slimmelezerre direktben(OTA, USB) feltölthető firmware-ek lefordított binárisait is, viszont ezek használata nem javasolt, mert frissítések alkalmával elveszhet a meglévő konfiguráció:
+[Slimmelezer.E.ON-4D4M.rar](https://drive.google.com/file/d/10OlD0Aoxti3LFLMXj2cScBJ9jfaaUWNJ/view)
