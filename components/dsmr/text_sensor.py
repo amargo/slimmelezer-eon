@@ -104,8 +104,8 @@ async def to_code(config):
     for key, conf in config.items():
         if not isinstance(conf, dict):
             continue
-        id = conf.get("id")
-        if id and id.type == text_sensor.TextSensor:
+        sensor_id = conf.get("id")
+        if sensor_id and sensor_id.type == text_sensor.TextSensor:
             var = cg.new_Pvariable(conf[CONF_ID])
             await text_sensor.register_text_sensor(var, conf)
             cg.add(getattr(hub, f"set_{key}")(var))

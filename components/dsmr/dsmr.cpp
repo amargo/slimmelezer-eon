@@ -6,17 +6,36 @@
 #include <AES.h>
 #include <Crypto.h>
 #include <GCM.h>
+#include <memory>
 
 namespace esphome {
 namespace dsmr {
 
 static const char *const TAG = "dsmr";
 
+void Dsmr::set_max_telegram_length(size_t length) {
+#ifdef ESP8266
+  // ESP8266 esetén korlátozzuk a buffer méretet
+  if (length > PLATFORM_MAX_TELEGRAM_SIZE) {
+    ESP_LOGW(TAG, "Limiting telegram size on ESP8266 to %d bytes", PLATFORM_MAX_TELEGRAM_SIZE);
+    this->max_telegram_len_ = PLATFORM_MAX_TELEGRAM_SIZE;
+  } else {
+    this->max_telegram_len_ = length;
+  }
+#else
+  this->max_telegram_len_ = length;
+#endif
+}
+
 void Dsmr::setup() {
-  this->telegram_ = new char[this->max_telegram_len_];  // NOLINT
+  // Smart pointer használata a nyers pointer helyett
+  this->telegram_ = std::make_unique<char[]>(this->max_telegram_len_);
+  
   if (this->request_pin_ != nullptr) {
     this->request_pin_->setup();
   }
+  
+  ESP_LOGCONFIG(TAG, "DSMR component initialized on %s with max telegram length: %d", PLATFORM_NAME, this->max_telegram_len_);
 }
 
 void Dsmr::loop() {
@@ -59,6 +78,11 @@ bool Dsmr::request_interval_reached_() {
 
 bool Dsmr::receive_timeout_reached_() { return millis() - this->last_read_time_ > this->receive_timeout_; }
 
+void Dsmr::reset_watchdog() {
+  // Platform-specifikus watchdog reset
+  PLATFORM_RESET_WDT();
+}
+
 bool Dsmr::available_within_timeout_() {
   // Data are available for reading on the UART bus?
   // Then we can start reading right away.
@@ -71,6 +95,10 @@ bool Dsmr::available_within_timeout_() {
   if (!header_found_) {
     return false;
   }
+  
+  // Reset watchdog a hosszú várakozás előtt
+  this->reset_watchdog();
+  
   // A telegram is being read. The smart meter might not deliver a telegram
   // in one go, but instead send it in chunks with small pauses in between.
   // When the UART RX buffer cannot hold a full telegram, then make sure
@@ -79,7 +107,8 @@ bool Dsmr::available_within_timeout_() {
   // the main loop, until the read timeout is reached.
   if (this->parent_->get_rx_buffer_size() < this->max_telegram_len_) {
     while (!this->receive_timeout_reached_()) {
-      delay(5);
+      // Platform-specifikus várakozási idő
+      delay(PLATFORM_WAIT_DELAY);
       if (this->available()) {
         this->last_read_time_ = millis();
         return true;
@@ -253,34 +282,41 @@ void Dsmr::receive_encrypted_telegram_() {
 }
 
 bool Dsmr::parse_telegram() {
-  MyData data;
-  ESP_LOGV(TAG, "Trying to parse telegram");
-  this->stop_requesting_data_();
+  // Reset watchdog a feldolgozás előtt
+  this->reset_watchdog();
+  
+  ESP_LOGV(TAG, "Parsing telegram: '%s'", this->telegram_.get());
+
   ::dsmr::ParseResult<void> res =
-      ::dsmr::P1Parser::parse(&data, this->telegram_, this->bytes_read_, false,
-                              this->crc_check_);  // Parse telegram according to data definition. Ignore unknown values.
+      ::dsmr::P1Parser::parse(&this->telegram_[0], this->bytes_read_, this->values_, this->crc_check_);
+
   if (res.err) {
-    // Parsing error, show it
-    auto err_str = res.fullError(this->telegram_, this->telegram_ + this->bytes_read_);
-    ESP_LOGE(TAG, "%s", err_str.c_str());
+    ESP_LOGE(TAG, "Error while parsing telegram: %s", res.fullError(this->telegram_.get(), this->telegram_.get() + this->bytes_read_));
     return false;
-  } else {
-    this->status_clear_warning();
-    this->publish_sensors(data);
+  }
+
+  if (!this->crc_check_ || this->values_.crc_valid) {
+    this->publish_sensors(this->values_);
     return true;
+  } else {
+    ESP_LOGE(TAG, "CRC check failed for telegram");
+    return false;
   }
 }
 
 void Dsmr::dump_config() {
   ESP_LOGCONFIG(TAG, "DSMR:");
-  ESP_LOGCONFIG(TAG, "  Max telegram length: %d", this->max_telegram_len_);
-  ESP_LOGCONFIG(TAG, "  Receive timeout: %.1fs", this->receive_timeout_ / 1e3f);
-  if (this->request_pin_ != nullptr) {
-    LOG_PIN("  Request Pin: ", this->request_pin_);
+  ESP_LOGCONFIG(TAG, "  Platform: %s", PLATFORM_NAME);
+  LOG_PIN("  Request Pin: ", this->request_pin_);
+  ESP_LOGCONFIG(TAG, "  Request Interval: %.1fs", this->request_interval_ / 1000.0f);
+  ESP_LOGCONFIG(TAG, "  Receive Timeout: %.1fs", this->receive_timeout_ / 1000.0f);
+  ESP_LOGCONFIG(TAG, "  Max Telegram Length: %u", this->max_telegram_len_);
+  ESP_LOGCONFIG(TAG, "  CRC Check: %s", YESNO(this->crc_check_));
+  if (!this->decryption_key_.empty()) {
+    ESP_LOGCONFIG(TAG, "  Decryption Key: (set)");
   }
-  if (this->request_interval_ > 0) {
-    ESP_LOGCONFIG(TAG, "  Request Interval: %.1fs", this->request_interval_ / 1e3f);
-  }
+
+  LOG_UPDATE_INTERVAL(this);
 
 #define DSMR_LOG_SENSOR(s) LOG_SENSOR("  ", #s, this->s_##s##_);
   DSMR_SENSOR_LIST(DSMR_LOG_SENSOR, )

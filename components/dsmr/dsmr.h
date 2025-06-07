@@ -9,9 +9,15 @@
 #include "esphome/core/log.h"
 #include "esphome/core/defines.h"
 
+// Platform compatibility layer
+#include "platform_compat.h"
+
 // don't include <dsmr.h> because it puts everything in global namespace
 #include "parser.h"
 #include "fields.h"
+
+#include <memory>
+#include <vector>
 
 namespace esphome {
 namespace dsmr {
@@ -69,10 +75,11 @@ class Dsmr : public Component, public uart::UARTDevice {
   void dump_config() override;
 
   void set_decryption_key(const std::string &decryption_key);
-  void set_max_telegram_length(size_t length) { this->max_telegram_len_ = length; }
+  void set_max_telegram_length(size_t length);
   void set_request_pin(GPIOPin *request_pin) { this->request_pin_ = request_pin; }
   void set_request_interval(uint32_t interval) { this->request_interval_ = interval; }
   void set_receive_timeout(uint32_t timeout) { this->receive_timeout_ = timeout; }
+  void reset_watchdog();
 
 // Sensor setters
 #define DSMR_SET_SENSOR(s) \
@@ -113,9 +120,9 @@ class Dsmr : public Component, public uart::UARTDevice {
   uint32_t receive_timeout_;
   bool receive_timeout_reached_();
   size_t max_telegram_len_;
-  char *telegram_{nullptr};
+  std::unique_ptr<char[]> telegram_{nullptr};
   size_t bytes_read_{0};
-  uint8_t *crypt_telegram_{nullptr};
+  std::unique_ptr<uint8_t[]> crypt_telegram_{nullptr};
   size_t crypt_telegram_len_{0};
   size_t crypt_bytes_read_{0};
   uint32_t last_read_time_{0};
