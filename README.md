@@ -7,6 +7,22 @@
 ### ESPHome 2025.5.x kompatibilitási frissítés
 A komponens frissítve lett, hogy kompatibilis legyen az ESPHome 2025.5.x és újabb verzióival. A frissítés megoldja a `text_sensor.TEXT_SENSOR_SCHEMA` elavult séma használatával kapcsolatos figyelmeztetést, amely a 2025.11.0 verzióban teljesen el lesz távolítva. A komponens most már a `text_sensor.text_sensor_schema()` függvényt használja, miközben megőrzi a visszafelé kompatibilitást a korábbi ESPHome verziókkal is.
 
+### Memory Management Javítások
+A DSMR komponens átállítva lett modern C++ memory management használatára `std::unique_ptr` smart pointerekkel. Ez a javítás számos előnnyel jár:
+
+**Előnyök:**
+- **Automatikus memória felszabadítás**: A smart pointerek automatikusan felszabadítják a memóriát, amikor már nincs rá szükség
+- **Memory leak védelem**: Elkerüli a memória szivárgást, ami különösen fontos az ESP8266/ESP32 korlátozott memóriájával
+- **Exception safety**: Ha kivétel keletkezik, a memória automatikusan felszabadul
+- **Compiler optimalizáció**: Modern C++ standardok szerinti kód, amely jobban optimalizálható
+- **Biztonságosabb kód**: Csökkenti a null pointer hibák és buffer overflow lehetőségét
+
+**Technikai változások:**
+- `char*` és `uint8_t*` nyers pointerek helyett `std::unique_ptr<char[]>` és `std::unique_ptr<uint8_t[]>` használata
+- Automatikus buffer inicializálás `std::make_unique` segítségével
+- Proper buffer elérés `.get()` metódussal
+- `delete[]` helyett automatikus destruktor hívás
+
 
 ### Készült Slimmelezer.E.ON - [4D4M](https://prohardver.hu/tag/4d4m.html)
 

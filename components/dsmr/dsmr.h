@@ -142,6 +142,7 @@ class Dsmr : public Component, public uart::UARTDevice {
 
   std::vector<uint8_t> decryption_key_{};
   bool crc_check_;
+  MyData values_;
 };
 }  // namespace dsmr
 }  // namespace esphome

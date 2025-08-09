@@ -187,7 +187,7 @@ void Dsmr::receive_telegram_() {
     // proper parsing, remove these new line characters.
     if (c == '(') {
       while (true) {
-        auto previous_char = this->telegram_[this->bytes_read_ - 1];
+        auto previous_char = this->telegram_.get()[this->bytes_read_ - 1];
         if (previous_char == '\n' || previous_char == '\r') {
           this->bytes_read_--;
         } else {
@@ -197,7 +197,7 @@ void Dsmr::receive_telegram_() {
     }
 
     // Store the byte in the buffer.
-    this->telegram_[this->bytes_read_] = c;
+    this->telegram_.get()[this->bytes_read_] = c;
     this->bytes_read_++;
 
     // Check for a footer, i.e. exlamation mark, followed by a hex checksum.
@@ -241,13 +241,13 @@ void Dsmr::receive_encrypted_telegram_() {
     }
 
     // Store the byte in the buffer.
-    this->crypt_telegram_[this->crypt_bytes_read_] = c;
+    this->crypt_telegram_.get()[this->crypt_bytes_read_] = c;
     this->crypt_bytes_read_++;
 
     // Read the length of the incoming encrypted telegram.
     if (this->crypt_telegram_len_ == 0 && this->crypt_bytes_read_ > 20) {
       // Complete header + data bytes
-      this->crypt_telegram_len_ = 13 + (this->crypt_telegram_[11] << 8 | this->crypt_telegram_[12]);
+      this->crypt_telegram_len_ = 13 + (this->crypt_telegram_.get()[11] << 8 | this->crypt_telegram_.get()[12]);
       ESP_LOGV(TAG, "Encrypted telegram length: %d bytes", this->crypt_telegram_len_);
     }
 
@@ -263,19 +263,18 @@ void Dsmr::receive_encrypted_telegram_() {
     // the iv is 8 bytes of the system title + 4 bytes frame counter
     // system title is at byte 2 and frame counter at byte 15
     for (int i = 10; i < 14; i++)
-      this->crypt_telegram_[i] = this->crypt_telegram_[i + 4];
+      this->crypt_telegram_.get()[i] = this->crypt_telegram_.get()[i + 4];
     constexpr uint16_t iv_size{12};
-    gcmaes128->setIV(&this->crypt_telegram_[2], iv_size);
-    gcmaes128->decrypt(reinterpret_cast<uint8_t *>(this->telegram_),
-                       // the ciphertext start at byte 18
-                       &this->crypt_telegram_[18],
-                       // cipher size
-                       this->crypt_bytes_read_ - 17);
-    delete gcmaes128;  // NOLINT(cppcoreguidelines-owning-memory)
+    gcmaes128->setIV(&this->crypt_telegram_.get()[2], iv_size);
+    gcmaes128->decrypt(reinterpret_cast<uint8_t *>(this->telegram_.get()),
+                        // the ciphertext start at byte 18
+                        this->crypt_telegram_.get() + 18,
+                        // cipher size
+                        this->crypt_bytes_read_ - 17);
 
-    this->bytes_read_ = strnlen(this->telegram_, this->max_telegram_len_);
+    this->bytes_read_ = strnlen(this->telegram_.get(), this->max_telegram_len_);
     ESP_LOGV(TAG, "Decrypted telegram size: %d bytes", this->bytes_read_);
-    ESP_LOGVV(TAG, "Decrypted telegram: %s", this->telegram_);
+    ESP_LOGVV(TAG, "Decrypted telegram: %s", this->telegram_.get());
 
     // Parse the decrypted telegram and publish sensor values.
     this->parse_telegram();
@@ -291,7 +290,7 @@ bool Dsmr::parse_telegram() {
   ESP_LOGV(TAG, "Parsing telegram: '%s'", this->telegram_.get());
 
   ::dsmr::ParseResult<void> res =
-      ::dsmr::P1Parser::parse(&this->telegram_[0], this->bytes_read_, this->values_, this->crc_check_);
+      ::dsmr::P1Parser::parse(this->telegram_.get(), this->bytes_read_, this->values_, this->crc_check_);
 
   if (res.err) {
     ESP_LOGE(TAG, "Error while parsing telegram: %s", res.fullError(this->telegram_.get(), this->telegram_.get() + this->bytes_read_));
@@ -319,8 +318,6 @@ void Dsmr::dump_config() {
     ESP_LOGCONFIG(TAG, "  Decryption Key: (set)");
   }
 
-  LOG_UPDATE_INTERVAL(this);
-
 #define DSMR_LOG_SENSOR(s) LOG_SENSOR("  ", #s, this->s_##s##_);
   DSMR_SENSOR_LIST(DSMR_LOG_SENSOR, )
 
@@ -332,9 +329,8 @@ void Dsmr::set_decryption_key(const std::string &decryption_key) {
   if (decryption_key.length() == 0) {
     ESP_LOGI(TAG, "Disabling decryption");
     this->decryption_key_.clear();
-    if (this->crypt_telegram_ != nullptr) {
-      delete[] this->crypt_telegram_;
-      this->crypt_telegram_ = nullptr;
+    if (this->crypt_telegram_) {
+      this->crypt_telegram_.reset();
     }
     return;
   }
@@ -355,8 +351,8 @@ void Dsmr::set_decryption_key(const std::string &decryption_key) {
     this->decryption_key_.push_back(std::strtoul(temp, nullptr, 16));
   }
 
-  if (this->crypt_telegram_ == nullptr) {
-    this->crypt_telegram_ = new uint8_t[this->max_telegram_len_];  // NOLINT
+  if (!this->crypt_telegram_) {
+    this->crypt_telegram_ = std::unique_ptr<uint8_t[]>(new uint8_t[this->max_telegram_len_]);
   }
 }
 
