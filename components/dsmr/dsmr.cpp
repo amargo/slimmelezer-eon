@@ -28,8 +28,18 @@ void Dsmr::set_max_telegram_length(size_t length) {
 }
 
 void Dsmr::setup() {
+  // Validate max telegram length
+  if (this->max_telegram_len_ == 0) {
+    ESP_LOGE(TAG, "Invalid max telegram length: %d", this->max_telegram_len_);
+    return;
+  }
+  
   // Smart pointer használata a nyers pointer helyett
   this->telegram_ = std::make_unique<char[]>(this->max_telegram_len_);
+  if (!this->telegram_) {
+    ESP_LOGE(TAG, "Failed to allocate telegram buffer");
+    return;
+  }
   
   if (this->request_pin_ != nullptr) {
     this->request_pin_->setup();
@@ -187,7 +197,7 @@ void Dsmr::receive_telegram_() {
     // proper parsing, remove these new line characters.
     if (c == '(' && this->bytes_read_ > 0) {
       while (this->bytes_read_ > 0) {
-        auto previous_char = this->telegram_.get()[this->bytes_read_ - 1];
+        const auto previous_char = this->telegram_.get()[this->bytes_read_ - 1];
         if (previous_char == '\n' || previous_char == '\r') {
           this->bytes_read_--;
         } else {
@@ -245,9 +255,9 @@ void Dsmr::receive_encrypted_telegram_() {
     this->crypt_bytes_read_++;
 
     // Read the length of the incoming encrypted telegram.
-    if (this->crypt_telegram_len_ == 0 && this->crypt_bytes_read_ > 20) {
+    if (this->crypt_telegram_len_ == 0 && this->crypt_bytes_read_ > ENCRYPTED_HEADER_MIN_SIZE) {
       // Complete header + data bytes
-      this->crypt_telegram_len_ = 13 + (this->crypt_telegram_.get()[11] << 8 | this->crypt_telegram_.get()[12]);
+      this->crypt_telegram_len_ = ENCRYPTED_HEADER_BASE_SIZE + (this->crypt_telegram_.get()[LENGTH_FIELD_OFFSET_1] << 8 | this->crypt_telegram_.get()[LENGTH_FIELD_OFFSET_2]);
       ESP_LOGV(TAG, "Encrypted telegram length: %d bytes", this->crypt_telegram_len_);
     }
 
@@ -258,19 +268,28 @@ void Dsmr::receive_encrypted_telegram_() {
     ESP_LOGV(TAG, "End of encrypted telegram found");
 
     // Decrypt the encrypted telegram.
-    auto gcmaes128 = std::make_unique<GCM<AES128>>();
-    gcmaes128->setKey(this->decryption_key_.data(), gcmaes128->keySize());
-    // the iv is 8 bytes of the system title + 4 bytes frame counter
-    // system title is at byte 2 and frame counter at byte 15
-    for (int i = 10; i < 14; i++)
-      this->crypt_telegram_.get()[i] = this->crypt_telegram_.get()[i + 4];
-    constexpr uint16_t iv_size{12};
-    gcmaes128->setIV(&this->crypt_telegram_.get()[2], iv_size);
-    gcmaes128->decrypt(reinterpret_cast<uint8_t *>(this->telegram_.get()),
-                        // the ciphertext start at byte 18
-                        this->crypt_telegram_.get() + 18,
-                        // cipher size
-                        this->crypt_bytes_read_ - 17);
+    try {
+      auto gcmaes128 = std::make_unique<GCM<AES128>>();
+      gcmaes128->setKey(this->decryption_key_.data(), gcmaes128->keySize());
+      // the iv is 8 bytes of the system title + 4 bytes frame counter
+      // system title is at byte 2 and frame counter at byte 15
+      for (size_t i = IV_FRAME_COUNTER_START; i < IV_FRAME_COUNTER_END; i++)
+        this->crypt_telegram_.get()[i] = this->crypt_telegram_.get()[i + 4];
+      gcmaes128->setIV(&this->crypt_telegram_.get()[IV_SYSTEM_TITLE_OFFSET], IV_SIZE);
+      gcmaes128->decrypt(reinterpret_cast<uint8_t *>(this->telegram_.get()),
+                          // the ciphertext start at byte 18
+                          this->crypt_telegram_.get() + CIPHERTEXT_OFFSET,
+                          // cipher size
+                          this->crypt_bytes_read_ - CIPHER_SIZE_REDUCTION);
+    } catch (const std::exception& e) {
+      ESP_LOGE(TAG, "Decryption failed: %s", e.what());
+      this->reset_telegram_();
+      return;
+    } catch (...) {
+      ESP_LOGE(TAG, "Unknown error during decryption");
+      this->reset_telegram_();
+      return;
+    }
 
     this->bytes_read_ = strnlen(this->telegram_.get(), this->max_telegram_len_);
     ESP_LOGV(TAG, "Decrypted telegram size: %d bytes", this->bytes_read_);
@@ -286,6 +305,12 @@ void Dsmr::receive_encrypted_telegram_() {
 bool Dsmr::parse_telegram() {
   // Reset watchdog a feldolgozás előtt
   this->reset_watchdog();
+  
+  // Validate telegram buffer and size
+  if (!this->telegram_ || this->bytes_read_ == 0) {
+    ESP_LOGE(TAG, "Invalid telegram buffer or empty telegram");
+    return false;
+  }
   
   ESP_LOGV(TAG, "Parsing telegram: '%s'", this->telegram_.get());
 
