@@ -185,8 +185,8 @@ void Dsmr::receive_telegram_() {
     // Some v2.2 or v3 meters will send a new value which starts with '('
     // in a new line, while the value belongs to the previous ObisId. For
     // proper parsing, remove these new line characters.
-    if (c == '(') {
-      while (true) {
+    if (c == '(' && this->bytes_read_ > 0) {
+      while (this->bytes_read_ > 0) {
         auto previous_char = this->telegram_.get()[this->bytes_read_ - 1];
         if (previous_char == '\n' || previous_char == '\r') {
           this->bytes_read_--;
@@ -258,7 +258,7 @@ void Dsmr::receive_encrypted_telegram_() {
     ESP_LOGV(TAG, "End of encrypted telegram found");
 
     // Decrypt the encrypted telegram.
-    GCM<AES128> *gcmaes128{new GCM<AES128>()};
+    auto gcmaes128 = std::make_unique<GCM<AES128>>();
     gcmaes128->setKey(this->decryption_key_.data(), gcmaes128->keySize());
     // the iv is 8 bytes of the system title + 4 bytes frame counter
     // system title is at byte 2 and frame counter at byte 15
