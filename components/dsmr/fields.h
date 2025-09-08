@@ -304,7 +304,7 @@ namespace dsmr
     DEFINE_FIELD(energy_positive_reactive_tariff4, FixedValue, ObisId(1, 0, 3, 8, 4), FixedField, units::kvarh, units::varh);
     
     /* Negative reactive energy (Q+) total [kvarh] 4.8.0 */
-    DEFINE_FIELD(energy_negative_reactive, FixedValue, ObisId(1, 0, 4, 8, 0), FixedField, units::kvarh, units::kvarh);
+    DEFINE_FIELD(energy_negative_reactive, FixedValue, ObisId(1, 0, 4, 8, 0), FixedField, units::kvarh, units::varh);
     /* negative reactive energy (Q+) total in tariff T1 [kvarh] */
     DEFINE_FIELD(energy_negative_reactive_tariff1, FixedValue, ObisId(1, 0, 4, 8, 1), FixedField, units::kvarh, units::varh);
     /* Negative reactive energy (Q+) total in tariff T2 [kvarh] */

@@ -8,6 +8,7 @@
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/log.h"
 #include "esphome/core/defines.h"
+#include <cmath>
 
 // don't include <dsmr.h> because it puts everything in global namespace
 #include "parser.h"
@@ -56,8 +57,11 @@ class Dsmr : public Component, public uart::UARTDevice {
 
   void publish_sensors(MyData &data) {
 #define DSMR_PUBLISH_SENSOR(s) \
-  if (data.s##_present && this->s_##s##_ != nullptr) \
-    s_##s##_->publish_state(data.s);
+  if (data.s##_present && this->s_##s##_ != nullptr) { \
+    float __v = static_cast<float>(data.s); \
+    __v = std::roundf(__v * 1000.0f) / 1000.0f; \
+    s_##s##_->publish_state(__v); \
+  }
     DSMR_SENSOR_LIST(DSMR_PUBLISH_SENSOR, )
 
 #define DSMR_PUBLISH_TEXT_SENSOR(s) \

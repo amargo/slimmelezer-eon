@@ -87,22 +87,46 @@ sensor:
     power_delivered_l1:
       name: "Pillanatnyi teljesítmény L1 - hatásos vételezett (+A)"
       accuracy_decimals: 3
+      id: power_delivered_l1
+      internal: true
+      on_value:
+        - script.execute: update_phase_power
     power_delivered_l2:
       name: "Pillanatnyi teljesítmény L2 - hatásos vételezett (+A)"
       accuracy_decimals: 3
+      id: power_delivered_l2
+      internal: true
+      on_value:
+        - script.execute: update_phase_power
     power_delivered_l3:
       name: "Pillanatnyi teljesítmény L3 - hatásos vételezett (+A)"
       accuracy_decimals: 3
+      id: power_delivered_l3
+      internal: true
+      on_value:
+        - script.execute: update_phase_power
 
     power_returned_l1:
       name: "Pillanatnyi teljesítmény L1 - hatásos betáplált (-A)"
       accuracy_decimals: 3
+      id: power_returned_l1
+      internal: true
+      on_value:
+        - script.execute: update_phase_power
     power_returned_l2:
       name: "Pillanatnyi teljesítmény L2 - hatásos betáplált (-A)"
       accuracy_decimals: 3
+      id: power_returned_l2
+      internal: true
+      on_value:
+        - script.execute: update_phase_power
     power_returned_l3:
       name: "Pillanatnyi teljesítmény L3 - hatásos betáplált (-A)"
       accuracy_decimals: 3
+      id: power_returned_l3
+      internal: true
+      on_value:
+        - script.execute: update_phase_power
 
     power_delivered:
       name: "Pillanatnyi teljesítmény - hatásos vételezett (+A)"
@@ -162,33 +186,43 @@ sensor:
     instantaneous_power_factor:
       name: "Teljesítménytényező - eredő"
       device_class: power_factor
+      accuracy_decimals: 1
     instantaneous_power_factor_l1:
       name: "Teljesítménytényező L1"
       device_class: power_factor
+      accuracy_decimals: 1
     instantaneous_power_factor_l2:
       name: "Teljesítménytényező L2"
       device_class: power_factor
+      accuracy_decimals: 1
     instantaneous_power_factor_l3:
       name: "Teljesítménytényező L3"
       device_class: power_factor
+      accuracy_decimals: 1
 
     reactive_power_qi:
       name: "Pillanatnyi teljesítmény - meddő (QI)"
       device_class: reactive_power
+      accuracy_decimals: 3
     reactive_power_qii:
       name: "Pillanatnyi teljesítmény - meddő (QII)"
       device_class: reactive_power
+      accuracy_decimals: 3
     reactive_power_qiii:
       name: "Pillanatnyi teljesítmény - meddő (QIII)"
       device_class: reactive_power
+      accuracy_decimals: 3
     reactive_power_qiv:
       name: "Pillanatnyi teljesítmény - meddő (QIV)"
       device_class: reactive_power
+      accuracy_decimals: 3
 
     energy_positive_reactive:
       name: "Meddő energia - vételezett (+R)"
+      id: energy_positive_reactive
     energy_negative_reactive:
       name: "Meddő energia - betáplált (-R)"
+      id: energy_negative_reactive
     reactive_energy_qi:
       name: "Meddő energia (QI)"
     reactive_energy_qii:
@@ -211,9 +245,9 @@ sensor:
   - platform: uptime
     name: "SlimmeLezer üzemidő"
     device_class: duration
-  # - platform: wifi_signal
-  #   name: "SlimmeLezer Wi-Fi jel"
-  #   update_interval: 60s
+  - platform: wifi_signal
+    name: "SlimmeLezer Wi-Fi jel"
+    update_interval: 60s
 
   - platform: template
     name: "Pillanatnyi teljesítmény - hatásos eredő"
@@ -222,6 +256,46 @@ sensor:
     state_class: measurement
     device_class: power
     accuracy_decimals: 3
+
+  # Net power per phase (positive = consumption, negative = production)
+  - platform: template
+    name: "Pillanatnyi teljesítmény L1 - nettó"
+    id: power_net_l1
+    unit_of_measurement: kW
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 3
+    update_interval: never
+
+  - platform: template
+    name: "Pillanatnyi teljesítmény L2 - nettó"
+    id: power_net_l2
+    unit_of_measurement: kW
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 3
+    update_interval: never
+
+  - platform: template
+    name: "Pillanatnyi teljesítmény L3 - nettó"
+    id: power_net_l3
+    unit_of_measurement: kW
+    device_class: power
+    state_class: measurement
+    accuracy_decimals: 3
+    update_interval: never
+
+  # Net reactive energy (positive = consumed, negative = produced)
+  - platform: template
+    name: "Meddő energia - nettó"
+    id: reactive_energy_net
+    unit_of_measurement: kvarh
+    state_class: measurement
+    accuracy_decimals: 3
+    lambda: |-
+      float positive = id(energy_positive_reactive).state;
+      float negative = id(energy_negative_reactive).state;
+      return positive - negative;
 
 text_sensor:
   # - platform: wifi_info
@@ -257,3 +331,14 @@ script:
     then:
       - lambda: |-
           id(power_balance).publish_state(id(power_produced).state-id(power_consumed).state);
+  - id: update_phase_power
+    mode: queued
+    then:
+      - lambda: |-
+          auto r3 = [](float v){ return roundf(v * 1000.0f) / 1000.0f; };
+          float n1 = id(power_delivered_l1).state - id(power_returned_l1).state;
+          float n2 = id(power_delivered_l2).state - id(power_returned_l2).state;
+          float n3 = id(power_delivered_l3).state - id(power_returned_l3).state;
+          id(power_net_l1).publish_state(r3(n1));
+          id(power_net_l2).publish_state(r3(n2));
+          id(power_net_l3).publish_state(r3(n3));

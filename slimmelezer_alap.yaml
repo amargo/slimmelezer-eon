@@ -137,15 +137,19 @@ sensor:
     instantaneous_power_factor:
       name: "Teljesítménytényező - eredő"
       device_class: power_factor
+      accuracy_decimals: 1
     instantaneous_power_factor_l1:
       name: "Teljesítménytényező L1"
       device_class: power_factor
+      accuracy_decimals: 1
     instantaneous_power_factor_l2:
       name: "Teljesítménytényező L2"
       device_class: power_factor
+      accuracy_decimals: 1
     instantaneous_power_factor_l3:
       name: "Teljesítménytényező L3"
       device_class: power_factor
+      accuracy_decimals: 1
     
     #reactive_power_qi:
     #  name: "Pillanatnyi teljesítmény - meddő (QI)"

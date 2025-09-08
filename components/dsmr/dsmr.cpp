@@ -179,6 +179,9 @@ void Dsmr::receive_telegram_() {
     }
     // Check for the end of the hex checksum, i.e. a newline.
     if (this->footer_found_ && c == '\n') {
+      // Log the complete raw telegram for debugging.
+      // Use precision specifier to avoid relying on NUL termination.
+      ESP_LOGVV(TAG, "Telegram: %.*s", static_cast<int>(this->bytes_read_), this->telegram_);
       // Parse the telegram and publish sensor values.
       this->parse_telegram();
       this->reset_telegram_();
