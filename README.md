@@ -101,6 +101,42 @@ Pozitív érték: nettó meddő energia fogyasztás. Negatív érték: nettó me
 Megjegyzés: a `fields.h`-ban javítva lett a reaktív energia integer egysége (4.8.0 → `varh`), így a `kvarh/varh` párosítás
 következetes és helyes.
 
+## Per-fázis teljesítmény adatok – visszafelé kompatibilitás és E.ON kérés
+
+Az új YAML-ok a fázisonkénti nettó teljesítményt elsődlegesen a mérő által küldött per‑fázis hatásos teljesítményből számolják:
+
+- `power_delivered_l1..l3` és `power_returned_l1..l3` → nettó = vételezett − betáplált (kW)
+
+Ha a mérő nem küld ilyen per‑fázis teljesítmény adatot (sok mérőn alapból tiltva van), a számítások visszafelé kompatibilisen működnek:
+
+- Fallback képlet: P_net ≈ U × I × PF / 1000
+  - feszültség: `voltage_l1..l3`
+  - áram: `current_l1..l3`
+  - teljesítménytényező: `instantaneous_power_factor_l1..l3` (ha nem érhető el, PF=1.0 feltételezés)
+- A nettó áram (A) elsődlegesen P_net és U alapján kerül számításra (I = P_net×1000/U), ellenkező esetben a mérő által szolgáltatott `current_l*` kerül publikálásra.
+
+### Per‑fázis teljesítmény bekapcsoltatása az E.ON-nál
+
+Több mérőnél a per‑fázis hatásos teljesítmény értékek (`power_delivered_l*`, `power_returned_l*`) csak külön kérésre válnak elérhetővé. Ezek bekapcsoltatását az E.ON-nál lehet kérni e‑mailben. Ajánlott cím és sablon:
+
+- Címzett: aramhalozat@eon.hu
+
+Sablon:
+
+```
+Kedves Ügyfélszolgálat!
+Szeretnék kérni szoftverfrissítést a villanyórámhoz.
+
+E.ON felhasználó azonosító:
+MVM felhasználó azonosító:
+Mérő gyártási száma:
+Felhasználási hely:
+
+Köszönöm szépen!
+```
+
+Megjegyzés: a kérelemhez indoklás is szükséges (pl. napelemes rendszer fázisonkénti egyensúlyozása, terhelésmenedzsment, fázisonkénti visszatáplálás monitorozása stb.).
+
 ## DSMR debug/telegram naplózás
 
 A nyers DSMR telegram naplózása bekerült VV szinten. Engedélyezés a YAML-ban:

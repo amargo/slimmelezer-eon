@@ -12,6 +12,8 @@ esphome:
     version: "2.0"
 esp32:
   board: esp32dev
+  framework:
+    type: arduino
 
 external_components:
   - source: github://amargo/slimmelezer-eon[@main]
@@ -169,19 +171,31 @@ sensor:
 
     voltage_l1:
       name: "Fázisfeszültség L1"
+      id: voltage_l1
+      on_value:
+        - script.execute: update_phase_power
     voltage_l2:
       name: "Fázisfeszültség L2"
+      id: voltage_l2
+      on_value:
+        - script.execute: update_phase_power
     voltage_l3:
       name: "Fázisfeszültség L3"
+      id: voltage_l3
+      on_value:
+        - script.execute: update_phase_power
     current_l1:
       name: "Pillanatnyi áramerősség L1"
       accuracy_decimals: 1
+      id: current_l1
     current_l2:
       name: "Pillanatnyi áramerősség L2"
       accuracy_decimals: 1
+      id: current_l2
     current_l3:
       name: "Pillanatnyi áramerősség L3"
       accuracy_decimals: 1
+      id: current_l3
 
     instantaneous_power_factor:
       name: "Teljesítménytényező - eredő"
@@ -191,14 +205,17 @@ sensor:
       name: "Teljesítménytényező L1"
       device_class: power_factor
       accuracy_decimals: 1
+      id: instantaneous_power_factor_l1
     instantaneous_power_factor_l2:
       name: "Teljesítménytényező L2"
       device_class: power_factor
       accuracy_decimals: 1
+      id: instantaneous_power_factor_l2
     instantaneous_power_factor_l3:
       name: "Teljesítménytényező L3"
       device_class: power_factor
       accuracy_decimals: 1
+      id: instantaneous_power_factor_l3
 
     reactive_power_qi:
       name: "Pillanatnyi teljesítmény - meddő (QI)"
@@ -244,9 +261,6 @@ sensor:
   - platform: uptime
     name: "SlimmeLezer üzemidő"
     device_class: duration
-  - platform: wifi_signal
-    name: "SlimmeLezer Wi-Fi jel"
-    update_interval: 60s
 
   - platform: template
     name: "Pillanatnyi teljesítmény - hatásos eredő"
@@ -284,6 +298,34 @@ sensor:
     accuracy_decimals: 3
     update_interval: never
 
+  # Net current per phase (I = P_net[kW]*1000 / U[V])
+  - platform: template
+    name: "Pillanatnyi áramerősség L1 - nettó"
+    id: current_net_l1
+    unit_of_measurement: A
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 2
+    update_interval: never
+
+  - platform: template
+    name: "Pillanatnyi áramerősség L2 - nettó"
+    id: current_net_l2
+    unit_of_measurement: A
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 2
+    update_interval: never
+
+  - platform: template
+    name: "Pillanatnyi áramerősség L3 - nettó"
+    id: current_net_l3
+    unit_of_measurement: A
+    device_class: current
+    state_class: measurement
+    accuracy_decimals: 2
+    update_interval: never
+
   # Net reactive energy (positive = consumed, negative = produced)
   - platform: template
     name: "Meddő energia - nettó"
@@ -297,17 +339,6 @@ sensor:
       return positive - negative;
 
 text_sensor:
-  # - platform: wifi_info
-  #   ip_address:
-  #     name: "SlimmeLezer IP"
-  #     update_interval: 60s
-  #   ssid:
-  #     name: "SlimmeLezer Wi-Fi SSID"
-  #     update_interval: 60s
-  #   bssid:
-  #     name: "SlimmeLezer Wi-Fi BSSID"
-  #     update_interval: 60s
-
   - platform: dsmr
     #identification:
     #  name: "COSEM logikai készüléknév"
@@ -335,9 +366,33 @@ script:
     then:
       - lambda: |-
           auto r3 = [](float v){ return roundf(v * 1000.0f) / 1000.0f; };
-          float n1 = id(power_delivered_l1).state - id(power_returned_l1).state;
-          float n2 = id(power_delivered_l2).state - id(power_returned_l2).state;
-          float n3 = id(power_delivered_l3).state - id(power_returned_l3).state;
+          auto r2 = [](float v){ return roundf(v * 100.0f) / 100.0f; };
+          // Read base values
+          float pd1 = id(power_delivered_l1).state; float pr1 = id(power_returned_l1).state;
+          float pd2 = id(power_delivered_l2).state; float pr2 = id(power_returned_l2).state;
+          float pd3 = id(power_delivered_l3).state; float pr3 = id(power_returned_l3).state;
+          float u1 = id(voltage_l1).state; float u2 = id(voltage_l2).state; float u3 = id(voltage_l3).state;
+          float i1m = id(current_l1).state; float i2m = id(current_l2).state; float i3m = id(current_l3).state;
+          float pf1 = id(instantaneous_power_factor_l1).state; float pf2 = id(instantaneous_power_factor_l2).state; float pf3 = id(instantaneous_power_factor_l3).state;
+          // Compute net power per phase. Primary source: delivered-returned. Fallback: U*I*PF/1000.
+          auto fallback_p = [](float u, float i, float pf){
+            if (isnan(u) || u <= 1.0f || isnan(i) || i < 0.0f) return NAN;
+            if (isnan(pf) || pf <= 0.0f) pf = 1.0f;
+            return (u * i * pf) / 1000.0f;
+          };
+          float n1 = (!isnan(pd1) && !isnan(pr1)) ? (pd1 - pr1) : fallback_p(u1, i1m, pf1);
+          float n2 = (!isnan(pd2) && !isnan(pr2)) ? (pd2 - pr2) : fallback_p(u2, i2m, pf2);
+          float n3 = (!isnan(pd3) && !isnan(pr3)) ? (pd3 - pr3) : fallback_p(u3, i3m, pf3);
           id(power_net_l1).publish_state(r3(n1));
           id(power_net_l2).publish_state(r3(n2));
           id(power_net_l3).publish_state(r3(n3));
+          // Compute net current per phase from power/voltage; fallback to meter current
+          auto current_from_pu = [](float p_kw, float u){
+            if (!isnan(p_kw) && u > 1.0f) return p_kw * 1000.0f / u; else return NAN;
+          };
+          float in1 = current_from_pu(n1, u1); if (isnan(in1)) in1 = i1m;
+          float in2 = current_from_pu(n2, u2); if (isnan(in2)) in2 = i2m;
+          float in3 = current_from_pu(n3, u3); if (isnan(in3)) in3 = i3m;
+          id(current_net_l1).publish_state(r2(in1));
+          id(current_net_l2).publish_state(r2(in2));
+          id(current_net_l3).publish_state(r2(in3));

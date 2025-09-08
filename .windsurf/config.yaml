@@ -1,0 +1,33 @@
+# 1. Memória beállítás: MCP TTL (napokban)
+# Hosszú távú projekt esetén javasolt 30-180 nap közötti érték.
+memory:
+  mcp:
+    ttl_days: 180  # 0 = végtelen, de érdemes időkorlátot adni
+
+# 2. Indexelés: mely mappákban keresünk, melyeket zárunk ki
+index:
+  include:
+    - .
+
+# 3. Memória kontextus: fontos szabályzatok, workflow-k
+memories:
+  always:
+    - .windsurf/rules/primary-guide.md        # Fő irányelvek
+    - .windsurf/rules/context-pins.md         # Kontextus-pinek
+  project:
+    - .windsurf/plan.md                       # Projekt összefoglaló
+
+
+# 4. RAG beállítások: preferált fájlok és keresési limitek
+rag:
+  max_files_per_query: 18 # Egy keresésben max. ennyi fájl
+  max_chars_per_file: 80000 # Egy fájlból max. ennyi karakter
+
+# 5. Nyelvi szabályok
+rules:
+  language: "hu"      # Válasz nyelv magyar
+  code_language: "en" # Kódelemek angolul (osztályok, metódusok)
+
+# 6. MCP kapcsoló
+mcp:
+  enabled: false      # Ha szeretnéd, itt kapcsolhatjuk be később
