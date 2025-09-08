@@ -216,7 +216,6 @@ sensor:
       name: "Pillanatnyi teljesítmény - meddő (QIV)"
       device_class: reactive_power
       accuracy_decimals: 3
-
     energy_positive_reactive:
       name: "Meddő energia - vételezett (+R)"
       id: energy_positive_reactive

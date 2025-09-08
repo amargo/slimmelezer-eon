@@ -133,6 +133,20 @@ sensor:
       id: power_consumed
       on_value:
         - script.execute: update_power_balance
+    power_returned_l1:
+      name: "Pillanatnyi teljesítmény L1 - hatásos betáplált (-A)"
+      accuracy_decimals: 3
+      id: power_returned_l1
+      internal: true
+    power_returned_l2:
+      name: "Pillanatnyi teljesítmény L2 - hatásos betáplált (-A)"
+      accuracy_decimals: 3
+      id: power_returned_l2
+      internal: true
+    power_returned_l3:
+      name: "Pillanatnyi teljesítmény L3 - hatásos betáplált (-A)"
+      accuracy_decimals: 3
+      id: power_returned_l3
     power_returned:
       name: "Pillanatnyi teljesítmény - hatásos betáplált (-A)"
       accuracy_decimals: 3
