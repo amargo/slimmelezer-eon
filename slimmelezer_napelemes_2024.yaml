@@ -302,8 +302,11 @@ sensor:
     unit_of_measurement: A
     device_class: current
     state_class: measurement
-    accuracy_decimals: 2
+    accuracy_decimals: 1
     update_interval: never
+    filters:
+      - lambda: |-
+          return roundf(x * 10.0f) / 10.0f;
 
   - platform: template
     name: "Pillanatnyi áramerősség L2 - nettó"
@@ -311,8 +314,11 @@ sensor:
     unit_of_measurement: A
     device_class: current
     state_class: measurement
-    accuracy_decimals: 2
+    accuracy_decimals: 1
     update_interval: never
+    filters:
+      - lambda: |-
+          return roundf(x * 10.0f) / 10.0f;
 
   - platform: template
     name: "Pillanatnyi áramerősség L3 - nettó"
@@ -320,8 +326,11 @@ sensor:
     unit_of_measurement: A
     device_class: current
     state_class: measurement
-    accuracy_decimals: 2
+    accuracy_decimals: 1
     update_interval: never
+    filters:
+      - lambda: |-
+          return roundf(x * 10.0f) / 10.0f;
 
   # Net reactive energy (positive = consumed, negative = produced)
   - platform: template
