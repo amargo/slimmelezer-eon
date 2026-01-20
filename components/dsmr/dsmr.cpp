@@ -335,7 +335,7 @@ bool Dsmr::parse_telegram() {
   ESP_LOGV(TAG, "Parsing telegram: '%s'", this->telegram_.get());
 
   ::dsmr::ParseResult<void> res =
-      ::dsmr::P1Parser::parse(this->telegram_.get(), this->bytes_read_, this->values_, this->crc_check_);
+      ::dsmr::P1Parser::parse(this->telegram_.get(), this->bytes_read_, this->values_, this->crc_check_, this->lenient_);
 
   if (res.err) {
     ESP_LOGE(TAG, "Error while parsing telegram: %s", res.fullError(this->telegram_.get(), this->telegram_.get() + this->bytes_read_));

@@ -20,6 +20,7 @@ CONF_GAS_MBUS_ID = "gas_mbus_id"
 CONF_MAX_TELEGRAM_LENGTH = "max_telegram_length"
 CONF_REQUEST_INTERVAL = "request_interval"
 CONF_REQUEST_PIN = "request_pin"
+CONF_LENIENT = "lenient"
 
 # Hack to prevent compile error due to ambiguity with lib namespace
 dsmr_ns = cg.esphome_ns.namespace("esphome::dsmr")
@@ -50,6 +51,7 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(): cv.declare_id(Dsmr),
             cv.Optional(CONF_DECRYPTION_KEY): _validate_key,
             cv.Optional(CONF_CRC_CHECK, default=True): cv.boolean,
+            cv.Optional(CONF_LENIENT, default=False): cv.boolean,
             cv.Optional(CONF_GAS_MBUS_ID, default=1): cv.int_,
             cv.Optional(CONF_MAX_TELEGRAM_LENGTH, default=1500): cv.int_,
             cv.Optional(CONF_REQUEST_PIN): pins.gpio_output_pin_schema,
@@ -69,6 +71,7 @@ async def to_code(config):
     uart_component = await cg.get_variable(config[CONF_UART_ID])
     var = cg.new_Pvariable(config[CONF_ID], uart_component, config[CONF_CRC_CHECK])
     cg.add(var.set_max_telegram_length(config[CONF_MAX_TELEGRAM_LENGTH]))
+    cg.add(var.set_lenient(config[CONF_LENIENT]))
     if CONF_DECRYPTION_KEY in config:
         cg.add(var.set_decryption_key(config[CONF_DECRYPTION_KEY]))
     await cg.register_component(var, config)

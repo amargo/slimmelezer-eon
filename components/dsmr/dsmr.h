@@ -96,6 +96,7 @@ class Dsmr : public Component, public uart::UARTDevice {
   void set_request_interval(uint32_t interval) { this->request_interval_ = interval; }
   void set_receive_timeout(uint32_t timeout) { this->receive_timeout_ = timeout; }
   void reset_watchdog();
+  void set_lenient(bool lenient) { this->lenient_ = lenient; }
 
 // Sensor setters
 #define DSMR_SET_SENSOR(s) \
@@ -155,6 +156,7 @@ class Dsmr : public Component, public uart::UARTDevice {
   std::vector<uint8_t> decryption_key_{};
   bool crc_check_;
   MyData values_;
+  bool lenient_{false};
 };
 }  // namespace dsmr
 }  // namespace esphome

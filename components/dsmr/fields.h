@@ -321,7 +321,7 @@ namespace dsmr
 
     /* current status fo the breaker ON/OFF */
     DEFINE_FIELD(breaker_status, String, ObisId(0, 0, 96, 50, 68), StringField, 2, 3);
-    DEFINE_FIELD(breaker_status_b, String, ObisId(0, 0, 96, 3, 10), StringField, 2, 3);
+    DEFINE_FIELD(breaker_status_b, String, ObisId(0, 0, 96, 3, 10), StringField, 1, 3);
 
     /* Actual electricity power delivered (+P) in 1 Watt resolution 1.7.0 */
     DEFINE_FIELD(power_delivered, FixedValue, ObisId(1, 0, 1, 7, 0), FixedField, units::kW, units::W);

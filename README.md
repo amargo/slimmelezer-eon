@@ -137,6 +137,31 @@ Köszönöm szépen!
 
 Megjegyzés: a kérelemhez indoklás is szükséges (pl. napelemes rendszer fázisonkénti egyensúlyozása, terhelésmenedzsment, fázisonkénti visszatáplálás monitorozása stb.).
 
+## Toleráns parszolás (lenient mód)
+
+A magyar mérők (Holley DTSD545/DDSD285, Wasion aMeter100/aMeter100/aMeter300, Sagemcom MA105/MA110M egyfázisú, MA304/MA309M háromfázisú, Sanxing SX601 P12S01/S12U16, SX631 P34S02/S34U18) néha eltérő formátumban küldik az adatokat a standard DSMR-hez képest. A `lenient: true` opció bekapcsolásával a parszer nem áll meg egy-egy hibás sor miatt, hanem kihagyja azt és folytatja a többi mező feldolgozását.
+
+### Kezelt eltérések
+
+| Probléma | Leírás | Megoldás |
+|----------|--------|----------|
+| **Előjeles számok** | Reaktív teljesítmény negatív előjellel jöhet (pl. `-0.123*kvar`) | A parszer elfogadja a `-` jelet |
+| **Breaker status (96.3.10)** | Egyes mérők `(1)` / `(0)`-t küldenek `ON`/`OFF` helyett | 1-3 karakter hossz elfogadva |
+| **Unit kapitalizáció** | Egyes mérők `HZ`-t küldenek `Hz` helyett | Case-insensitive összehasonlítás |
+| **Ismeretlen mezők** | Mérő-specifikus OBIS kódok | Lenient módban kihagyva |
+
+### Használat
+
+```yaml
+dsmr:
+  id: dsmr_instance
+  crc_check: false
+  max_telegram_length: 3000
+  lenient: true  # Toleráns parszolás bekapcsolása
+```
+
+**Megjegyzés**: A `lenient: true` ajánlott, ha parse hibákat tapasztalsz a logban.
+
 ## DSMR debug/telegram naplózás
 
 A nyers DSMR telegram naplózása bekerült VV szinten. Engedélyezés a YAML-ban:

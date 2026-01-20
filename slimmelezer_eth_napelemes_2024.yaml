@@ -66,6 +66,7 @@ dsmr:
   id: dsmr_instance
   crc_check: false
   max_telegram_length: 3000
+  lenient: true
 
 sensor:
   - platform: dsmr

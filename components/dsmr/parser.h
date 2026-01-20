@@ -183,6 +183,9 @@ namespace dsmr
       const char *num_start = str + 1; // Skip (
       const char *num_end = num_start;
 
+      if (num_end < end && *num_end == '-')
+        ++num_end;
+
       uint32_t value = 0;
 
       // Parse integer part
@@ -333,7 +336,7 @@ namespace dsmr
    */
     template <typename... Ts>
     static ParseResult<void> parse(ParsedData<Ts...> *data, const char *str, size_t n, bool unknown_error = false,
-                                   bool check_crc = true)
+                                   bool check_crc = true, bool lenient = false)
     {
       ParseResult<void> res;
       if (!n || str[0] != '/')
@@ -366,7 +369,7 @@ namespace dsmr
         {
           return res.fail("Checksum mismatch", data_end + 1);
         }
-        res = parse_data(data, data_start, data_end, unknown_error);
+        res = parse_data(data, data_start, data_end, unknown_error, lenient);
         res.next = check_res.next;
       }
       else
@@ -376,7 +379,7 @@ namespace dsmr
           ++data_end;
         }
 
-        res = parse_data(data, data_start, data_end, unknown_error);
+        res = parse_data(data, data_start, data_end, unknown_error, lenient);
         res.next = data_end;
       }
 
@@ -390,7 +393,7 @@ namespace dsmr
    */
     template <typename... Ts>
     static ParseResult<void> parse_data(ParsedData<Ts...> *data, const char *str, const char *end,
-                                        bool unknown_error = false)
+                                        bool unknown_error = false, bool lenient = false)
     {
       ParseResult<void> res;
       // Split into lines and parse those
@@ -436,9 +439,12 @@ namespace dsmr
           }
           
           if (!is_in_block_area) {
-            ParseResult<void> tmp = parse_line(data, line_start, line_end, unknown_error);
-            if (tmp.err)
-              return tmp;
+            ParseResult<void> tmp = parse_line(data, line_start, line_end, unknown_error, lenient);
+            if (tmp.err) {
+              if (!lenient)
+                return tmp;
+              // In lenient mode, ignore per-line parse errors and keep parsing.
+            }
           } else {
             if (*line_start == '(') {
               is_in_block_area = false;
@@ -456,19 +462,25 @@ namespace dsmr
     }
 
     template <typename Data>
-    static ParseResult<void> parse_line(Data *data, const char *line, const char *end, bool unknown_error)
+    static ParseResult<void> parse_line(Data *data, const char *line, const char *end, bool unknown_error, bool lenient)
     {
       ParseResult<void> res;
       if (line == end)
         return res;
 
       ParseResult<ObisId> idres = ObisIdParser::parse(line, end);
-      if (idres.err)
+      if (idres.err) {
+        if (lenient)
+          return res.until(end);
         return idres;
+      }
 
       ParseResult<void> datares = data->parse_line(idres.result, idres.next, end);
-      if (datares.err)
+      if (datares.err) {
+        if (lenient)
+          return res.until(end);
         return datares;
+      }
 
       // If datares.next didn't move at all, there was no parser for
       // this field, that's ok. But if it did move, but not all the way
