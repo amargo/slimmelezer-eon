@@ -14,10 +14,8 @@ jobs:
       max-parallel: 4
       matrix:
         file:
-          - slimmelezer_eth_napelemes_2023.yaml
-          - slimmelezer_eth_napelemes_2024.yaml
-          - slimmelezer_napelemes_2023.yaml
-          - slimmelezer_napelemes_2024.yaml
+          - slimmelezer_eth_napelemes.yaml
+          - slimmelezer_napelemes.yaml
         esphome-version:
           - stable
           # - dev

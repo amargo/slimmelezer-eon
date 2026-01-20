@@ -75,10 +75,8 @@ dsmr:
 
 Az alábbi YAML-okban elérhetőek az új, nettó értéket mutató szenzorok:
 
-- `slimmelezer_napelemes_2023.yaml`
-- `slimmelezer_napelemes_2024.yaml`
-- `slimmelezer_eth_napelemes_2023.yaml`
-- `slimmelezer_eth_napelemes_2024.yaml`
+- `slimmelezer_napelemes.yaml`
+- `slimmelezer_eth_napelemes.yaml`
 
 ### Nettó pillanatnyi teljesítmény fázisonként
 
