@@ -1,10 +1,10 @@
 # DSMR Komponens Optimalizációs Útmutató
 
-## 📋 Áttekintés
+## Áttekintés
 
 Ez a dokumentum részletesen leírja a SlimmeLezer DSMR komponensben végrehajtott optimalizációkat és javításokat. A változtatások célja a kód minőségének, biztonságának és teljesítményének javítása volt, különös tekintettel az ESP8266/ESP32 platformok korlátozott erőforrásaira.
 
-## 🔧 Végrehajtott Optimalizációk
+## Végrehajtott Optimalizációk
 
 ### 1. Magic Numbers → Konstansok Átalakítása
 
@@ -149,7 +149,7 @@ this->decryption_key_.reserve(16); // Előzetes kapacitás foglalás
 - ✅ Biztonságos buffer inicializálás
 - ✅ Optimalizált memória használat
 
-## 🚀 Teljesítmény Javulások
+## Teljesítmény Javulások
 
 ### Mért Eredmények:
 - **Startup idő**: 15-20% javulás buffer inicializálás optimalizálásával
@@ -163,7 +163,7 @@ this->decryption_key_.reserve(16); // Előzetes kapacitás foglalás
 - **Flash Wear**: Kevesebb írási művelet
 - **Power Consumption**: Hatékonyabb CPU használat
 
-## 🛡️ Biztonság Javítások
+## Biztonság Javítások
 
 ### Memory Management:
 - **Smart Pointers**: `std::unique_ptr` használata raw pointerek helyett
@@ -177,7 +177,7 @@ this->decryption_key_.reserve(16); // Előzetes kapacitás foglalás
 - **Detailed Logging**: Hibakeresés támogatása
 - **Input Validation**: Minden input validálása
 
-## 📊 Kód Minőség Metrikák
+## Kód Minőség Metrikák
 
 ### Előtte:
 - **Cyclomatic Complexity**: 8-12 (magas)
@@ -191,7 +191,7 @@ this->decryption_key_.reserve(16); // Előzetes kapacitás foglalás
 - **Magic Numbers**: 0 db
 - **Error Handling Coverage**: 85%
 
-## 🔄 Karbantartási Útmutató
+## Karbantartási Útmutató
 
 ### Új Konstansok Hozzáadása:
 1. Definiáld a konstanst a `dsmr.h` fájlban
@@ -210,7 +210,7 @@ this->decryption_key_.reserve(16); // Előzetes kapacitás foglalás
 3. Optimalizálj memória használatra
 4. Teszteld a változásokat
 
-## 📝 Következő Lépések
+## Következő Lépések
 
 ### Javasolt További Optimalizációk:
 1. **Async Processing**: Telegram feldolgozás háttérben
@@ -224,9 +224,9 @@ this->decryption_key_.reserve(16); // Előzetes kapacitás foglalás
 - **Error Rates**: Hiba gyakoriság követése
 - **Stability Metrics**: Uptime és crash statisztikák
 
-## 🔄 **ROLLBACK - Optimalizációk Visszavonása**
+## **ROLLBACK - Optimalizációk Visszavonása**
 
-**⚠️ FONTOS MEGJEGYZÉS (2025-08-09 15:29):**
+**FONTOS MEGJEGYZÉS (2025-08-09 15:29):**
 
 Az összes optimalizáció **visszavonásra került** a USER döntése alapján. A kód visszaállt az eredeti, egyszerűbb állapotára.
 
@@ -243,11 +243,11 @@ Az összes optimalizáció **visszavonásra került** a USER döntése alapján.
 ### **Miért Történt a Rollback?**
 
 **Lehetséges okok:**
-1. **🎯 Egyszerűség előnyben**: Az eredeti kód egyszerűbb és könnyebben érthető
-2. **🔧 Karbantarthatóság**: Kevesebb komplexitás = könnyebb debug
-3. **📚 Tanulási folyamat**: Az optimalizációk túl sok változást hoztak egyszerre
-4. **⚡ "Premature Optimization"**: Lehet, hogy a teljesítmény javítás nem volt szükséges
-5. **🛠️ Kompatibilitás**: Az eredeti kód bizonyítottan működik
+1. **Egyszerűség előnyben**: Az eredeti kód egyszerűbb és könnyebben érthető
+2. **Karbantarthatóság**: Kevesebb komplexitás = könnyebb debug
+3. **Tanulási folyamat**: Az optimalizációk túl sok változást hoztak egyszerre
+4. **Premature Optimization**: Lehet, hogy a teljesítmény javítás nem volt szükséges
+5. **Kompatibilitás**: Az eredeti kód bizonyítottan működik
 
 ### **Mit Tanultunk?**
 
@@ -262,13 +262,13 @@ Az összes optimalizáció **visszavonásra került** a USER döntése alapján.
 - **Karbantartási teher**: Több kód = több potenciális hiba
 - **Overkill**: ESP8266/ESP32-n lehet nem volt szükség minden optimalizációra
 
-## 🎯 **Összefoglalás - Tanulságok**
+## **Összefoglalás - Tanulságok**
 
 ### **Amit Megtanultunk:**
-1. **🎯 KISS Principle**: "Keep It Simple, Stupid" - Az egyszerűség gyakran jobb
-2. **📊 Mérés Fontossága**: Optimalizáció előtt mérni kell a valós problémákat
-3. **🔄 Inkrementális Fejlesztés**: Kis lépésekben változtatni, nem egyszerre mindent
-4. **🛠️ Működő Kód Értéke**: Ha működik, ne javítsd meg túlzottan
+1. **KISS Principle**: "Keep It Simple, Stupid" - Az egyszerűség gyakran jobb
+2. **Mérés Fontossága**: Optimalizáció előtt mérni kell a valós problémákat
+3. **Inkrementális Fejlesztés**: Kis lépésekben változtatni, nem egyszerre mindent
+4. **Működő Kód Értéke**: Ha működik, ne javítsd meg túlzottan
 
 ### **Eredeti Kód Előnyei:**
 - ✅ **Egyszerű és érthető**
@@ -278,16 +278,9 @@ Az összes optimalizáció **visszavonásra került** a USER döntése alapján.
 - ✅ **Stabil és tesztelt**
 
 ### **Mikor Érdemes Optimalizálni:**
-- 📊 **Mért teljesítmény problémák** esetén
-- 🐛 **Konkrét hibák** javításakor
-- 💾 **Memória problémák** esetén
-- ⚡ **Valós bottleneck-ek** azonosításakor
+- **Mért teljesítmény problémák** esetén
+- **Konkrét hibák** javításakor
+- **Memória problémák** esetén
+- **Valós bottleneck-ek** azonosításakor
 
 ---
-
-**Készítette:** AI Assistant  
-**Dátum:** 2025-08-09  
-**Verzió:** 2.0 (Rollback)  
-**Státusz:** Dokumentált és visszavonva
-
-**Tanulság:** Néha a legjobb optimalizáció az, hogy nem optimalizálunk. Az egyszerűség és a működő kód értékesebb, mint a túlzott komplexitás.
