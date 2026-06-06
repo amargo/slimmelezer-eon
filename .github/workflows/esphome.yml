@@ -30,7 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-esphome-cache
       - name: ESPHome ${{ matrix.esphome-version }}
-        uses: esphome/build-action@v6
+        uses: esphome/build-action@v7
         with:
           yaml-file: ${{ matrix.file }}
           version: ${{ matrix.esphome-version }}
