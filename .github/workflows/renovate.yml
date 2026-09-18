@@ -1,0 +1,36 @@
+name: Renovate
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Péntek 02:20 UTC = 04:20 (nyári idő) / 03:20 (téli idő) Europe/Budapest.
+    # Mindkettő a renovate.json "after 1am and before 5am on friday" ablakán belül van,
+    # a repo-k 10 percenként vannak eltolva, hogy ne induljon minden egyszerre.
+    - cron: "20 02 * * 5"
+
+concurrency:
+  group: renovate-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    name: Renovate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+      pull-requests: write
+      security-events: read # a vulnerability alertek olvasásához kell
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v46.2.6
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN || secrets.GITHUB_TOKEN }}
+          configurationFile: renovate.json
+        env:
+          LOG_LEVEL: debug
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
