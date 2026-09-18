@@ -1,11 +1,14 @@
+---
 name: Renovate
 
 on:
   workflow_dispatch:
   schedule:
-    # Péntek 02:20 UTC = 04:20 (nyári idő) / 03:20 (téli idő) Europe/Budapest.
-    # Mindkettő a renovate.json "after 1am and before 5am on friday" ablakán belül van,
-    # a repo-k 10 percenként vannak eltolva, hogy ne induljon minden egyszerre.
+    # Friday 02:20 UTC = 04:20 CEST / 03:20 CET in Europe/Budapest.
+    # Both times fall inside the renovate.json schedule window
+    # "after 1am and before 5am on friday", regardless of DST.
+    # Repositories are staggered 10 minutes apart so that they do not
+    # all start at the same time.
     - cron: "20 02 * * 5"
 
 concurrency:
@@ -21,7 +24,8 @@ jobs:
       packages: write
       issues: write
       pull-requests: write
-      security-events: read # a vulnerability alertek olvasásához kell
+      # required to read vulnerability alerts
+      security-events: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
