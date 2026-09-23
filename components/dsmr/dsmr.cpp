@@ -344,7 +344,9 @@ void Dsmr::dump_config() {
   ESP_LOGCONFIG(TAG, "DSMR:");
   ESP_LOGCONFIG(TAG, "  Platform: %s", PLATFORM_NAME);
   LOG_PIN("  Request Pin: ", this->request_pin_);
-  ESP_LOGCONFIG(TAG, "  Request Interval: %.1fs", this->request_interval_ / 1000.0f);
+  if (this->request_interval_ > 0) {
+    ESP_LOGCONFIG(TAG, "  Request Interval: %.1fs", this->request_interval_ / 1000.0f);
+  }
   ESP_LOGCONFIG(TAG, "  Receive Timeout: %.1fs", this->receive_timeout_ / 1000.0f);
   ESP_LOGCONFIG(TAG, "  Max Telegram Length: %u", (unsigned) this->max_telegram_len_);
   ESP_LOGCONFIG(TAG, "  CRC Check: %s", YESNO(this->crc_check_));
@@ -404,7 +406,7 @@ void Dsmr::set_decryption_key(const std::string &decryption_key) {
   }
 
   if (!this->crypt_telegram_) {
-    this->crypt_telegram_ = std::unique_ptr<uint8_t[]>(new uint8_t[this->max_telegram_len_]);
+    this->crypt_telegram_ = std::make_unique<uint8_t[]>(this->max_telegram_len_);
   }
 }
 

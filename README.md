@@ -8,21 +8,11 @@
 A komponens frissítve lett, hogy kompatibilis legyen az ESPHome 2025.5.x és újabb verzióival. A frissítés megoldja a `text_sensor.TEXT_SENSOR_SCHEMA` elavult séma használatával kapcsolatos figyelmeztetést, amely a 2025.11.0 verzióban teljesen el lesz távolítva. A komponens most már a `text_sensor.text_sensor_schema()` függvényt használja, miközben megőrzi a visszafelé kompatibilitást a korábbi ESPHome verziókkal is.
 
 ### Memory Management Javítások
-A DSMR komponens átállítva lett modern C++ memory management használatára `std::unique_ptr` smart pointerekkel. Ez a javítás számos előnnyel jár:
+A DSMR komponens `std::unique_ptr`-t használ a telegram bufferekhez nyers `new`/`delete[]` helyett, és a dekódoláshoz használt GCM objektum is RAII-kezelt, így egy későbbi korai `return` sem hagyhat hátra felszabadítatlan memóriát. Az ESP8266 korlátozott heapjén ez a legérzékenyebb pont.
 
-**Előnyök:**
-- **Automatikus memória felszabadítás**: A smart pointerek automatikusan felszabadítják a memóriát, amikor már nincs rá szükség
-- **Memory leak védelem**: Elkerüli a memória szivárgást, ami különösen fontos az ESP8266/ESP32 korlátozott memóriájával
-- **Exception safety**: Ha kivétel keletkezik, a memória automatikusan felszabadul
-- **Compiler optimalizáció**: Modern C++ standardok szerinti kód, amely jobban optimalizálható
-- **Biztonságosabb kód**: Csökkenti a null pointer hibák és buffer overflow lehetőségét
+A titkosított telegram fejlécéből számolt hossz mostantól ellenőrzésre kerül a buffer méretéhez képest, a telegram eleji újsor-visszavágás pedig nem indexel a buffer alá.
 
-**Technikai változások:**
-- `char*` és `uint8_t*` nyers pointerek helyett `std::unique_ptr<char[]>` és `std::unique_ptr<uint8_t[]>` használata
-- Automatikus buffer inicializálás `std::make_unique` segítségével
-- Proper buffer elérés `.get()` metódussal
-- `delete[]` helyett automatikus destruktor hívás
-
+Megjegyzés: az ESPHome kivételkezelés nélkül fordít (`-fno-exceptions`), a smart pointerek haszna itt a determinisztikus felszabadítás, nem az exception safety.
 
 ### Készült Slimmelezer.E.ON - [4D4M](https://prohardver.hu/tag/4d4m.html)
 
