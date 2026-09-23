@@ -5,7 +5,6 @@
     "config:best-practices",
     "group:monorepos",
     "group:recommended",
-    ":pinDigestsDisabled",
     "workarounds:all",
     "abandonments:recommended"
   ],
@@ -30,12 +29,6 @@
     ]
   },
   "packageRules": [
-    {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "pinDigests": false
-    },
     {
       "matchManagers": [
         "github-actions"

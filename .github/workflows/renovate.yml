@@ -21,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
       issues: write
       pull-requests: write
       # required to read vulnerability alerts
@@ -36,5 +35,4 @@ jobs:
           token: ${{ secrets.RENOVATE_TOKEN || secrets.GITHUB_TOKEN }}
           configurationFile: renovate.json
         env:
-          LOG_LEVEL: debug
           RENOVATE_REPOSITORIES: ${{ github.repository }}
