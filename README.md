@@ -7,6 +7,12 @@
 ### ESPHome 2025.5.x kompatibilitási frissítés
 A komponens frissítve lett, hogy kompatibilis legyen az ESPHome 2025.5.x és újabb verzióival. A frissítés megoldja a `text_sensor.TEXT_SENSOR_SCHEMA` elavult séma használatával kapcsolatos figyelmeztetést, amely a 2025.11.0 verzióban teljesen el lesz távolítva. A komponens most már a `text_sensor.text_sensor_schema()` függvényt használja, miközben megőrzi a visszafelé kompatibilitást a korábbi ESPHome verziókkal is.
 
+### Memory Management Javítások
+A DSMR komponens `std::unique_ptr`-t használ a telegram bufferekhez nyers `new`/`delete[]` helyett, és a dekódoláshoz használt GCM objektum is RAII-kezelt, így egy későbbi korai `return` sem hagyhat hátra felszabadítatlan memóriát. Az ESP8266 korlátozott heapjén ez a legérzékenyebb pont.
+
+A titkosított telegram fejlécéből számolt hossz mostantól ellenőrzésre kerül a buffer méretéhez képest, a telegram eleji újsor-visszavágás pedig nem indexel a buffer alá.
+
+Megjegyzés: az ESPHome kivételkezelés nélkül fordít (`-fno-exceptions`), a smart pointerek haszna itt a determinisztikus felszabadítás, nem az exception safety.
 
 ### Készült Slimmelezer.E.ON - [4D4M](https://prohardver.hu/tag/4d4m.html)
 
