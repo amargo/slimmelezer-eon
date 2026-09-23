@@ -1,6 +1,7 @@
 #ifdef USE_ARDUINO
 
 #include "dsmr.h"
+#include "esphome/core/application.h"
 #include "esphome/core/log.h"
 
 #include <AES.h>
@@ -18,7 +19,7 @@ void Dsmr::set_max_telegram_length(size_t length) {
 #ifdef ESP8266
   // ESP8266 esetén korlátozzuk a buffer méretet
   if (length > PLATFORM_MAX_TELEGRAM_SIZE) {
-    ESP_LOGW(TAG, "Limiting telegram size on ESP8266 to %d bytes", PLATFORM_MAX_TELEGRAM_SIZE);
+    ESP_LOGW(TAG, "Limiting telegram size on ESP8266 to %u bytes", (unsigned) PLATFORM_MAX_TELEGRAM_SIZE);
     this->max_telegram_len_ = PLATFORM_MAX_TELEGRAM_SIZE;
   } else {
     this->max_telegram_len_ = length;
@@ -31,7 +32,7 @@ void Dsmr::set_max_telegram_length(size_t length) {
 void Dsmr::setup() {
   // Validate max telegram length
   if (this->max_telegram_len_ == 0) {
-    ESP_LOGE(TAG, "Invalid max telegram length: %d", this->max_telegram_len_);
+    ESP_LOGE(TAG, "Invalid max telegram length: %u", (unsigned) this->max_telegram_len_);
     return;
   }
   
@@ -49,7 +50,8 @@ void Dsmr::setup() {
     this->request_pin_->setup();
   }
   
-  ESP_LOGCONFIG(TAG, "DSMR component initialized on %s with max telegram length: %d", PLATFORM_NAME, this->max_telegram_len_);
+  ESP_LOGCONFIG(TAG, "DSMR component initialized on %s with max telegram length: %u", PLATFORM_NAME,
+                (unsigned) this->max_telegram_len_);
 }
 
 void Dsmr::loop() {
@@ -92,10 +94,7 @@ bool Dsmr::request_interval_reached_() {
 
 bool Dsmr::receive_timeout_reached_() { return millis() - this->last_read_time_ > this->receive_timeout_; }
 
-void Dsmr::reset_watchdog() {
-  // Platform-specifikus watchdog reset
-  PLATFORM_RESET_WDT();
-}
+void Dsmr::reset_watchdog() { App.feed_wdt(); }
 
 bool Dsmr::available_within_timeout_() {
   // Data are available for reading on the UART bus?
@@ -272,7 +271,8 @@ void Dsmr::receive_encrypted_telegram_() {
       
       // Validate calculated length
       if (calculated_length > this->max_telegram_len_) {
-        ESP_LOGE(TAG, "Calculated encrypted telegram length (%d) exceeds buffer size (%d)", calculated_length, this->max_telegram_len_);
+        ESP_LOGE(TAG, "Calculated encrypted telegram length (%u) exceeds buffer size (%u)", (unsigned) calculated_length,
+                 (unsigned) this->max_telegram_len_);
         this->reset_telegram_();
         return;
       }
@@ -288,7 +288,7 @@ void Dsmr::receive_encrypted_telegram_() {
     ESP_LOGV(TAG, "End of encrypted telegram found");
 
     // Decrypt the encrypted telegram.
-    try {
+    {
       auto gcmaes128 = std::make_unique<GCM<AES128>>();
       gcmaes128->setKey(this->decryption_key_.data(), gcmaes128->keySize());
       // the iv is 8 bytes of the system title + 4 bytes frame counter
@@ -297,22 +297,14 @@ void Dsmr::receive_encrypted_telegram_() {
         this->crypt_telegram_.get()[i] = this->crypt_telegram_.get()[i + 4];
       gcmaes128->setIV(&this->crypt_telegram_.get()[IV_SYSTEM_TITLE_OFFSET], IV_SIZE);
       gcmaes128->decrypt(reinterpret_cast<uint8_t *>(this->telegram_.get()),
-                          // the ciphertext start at byte 18
-                          this->crypt_telegram_.get() + CIPHERTEXT_OFFSET,
-                          // cipher size
-                          this->crypt_bytes_read_ - CIPHER_SIZE_REDUCTION);
-    } catch (const std::exception& e) {
-      ESP_LOGE(TAG, "Decryption failed: %s", e.what());
-      this->reset_telegram_();
-      return;
-    } catch (...) {
-      ESP_LOGE(TAG, "Unknown error during decryption");
-      this->reset_telegram_();
-      return;
+                         // the ciphertext start at byte 18
+                         this->crypt_telegram_.get() + CIPHERTEXT_OFFSET,
+                         // cipher size
+                         this->crypt_bytes_read_ - CIPHER_SIZE_REDUCTION);
     }
 
     this->bytes_read_ = strnlen(this->telegram_.get(), this->max_telegram_len_);
-    ESP_LOGV(TAG, "Decrypted telegram size: %d bytes", this->bytes_read_);
+    ESP_LOGV(TAG, "Decrypted telegram size: %u bytes", (unsigned) this->bytes_read_);
     ESP_LOGVV(TAG, "Decrypted telegram: %s", this->telegram_.get());
 
     // Parse the decrypted telegram and publish sensor values.
@@ -323,32 +315,29 @@ void Dsmr::receive_encrypted_telegram_() {
 }
 
 bool Dsmr::parse_telegram() {
-  // Reset watchdog a feldolgozás előtt
+  // A fresh MyData per telegram: the parser rejects a field that is already
+  // marked present, so a reused instance would freeze on the first telegram.
+  MyData data;
   this->reset_watchdog();
-  
-  // Validate telegram buffer and size
+  ESP_LOGV(TAG, "Trying to parse telegram");
+  this->stop_requesting_data_();
+
   if (!this->telegram_ || this->bytes_read_ == 0) {
     ESP_LOGE(TAG, "Invalid telegram buffer or empty telegram");
     return false;
   }
-  
-  ESP_LOGV(TAG, "Parsing telegram: '%s'", this->telegram_.get());
 
-  ::dsmr::ParseResult<void> res =
-      ::dsmr::P1Parser::parse(this->telegram_.get(), this->bytes_read_, this->values_, this->crc_check_, this->lenient_);
-
+  ::dsmr::ParseResult<void> res = ::dsmr::P1Parser::parse(&data, this->telegram_.get(), this->bytes_read_, false,
+                                                          this->crc_check_, this->lenient_);
   if (res.err) {
-    ESP_LOGE(TAG, "Error while parsing telegram: %s", res.fullError(this->telegram_.get(), this->telegram_.get() + this->bytes_read_));
+    auto err_str = res.fullError(this->telegram_.get(), this->telegram_.get() + this->bytes_read_);
+    ESP_LOGE(TAG, "%s", err_str.c_str());
     return false;
   }
 
-  if (!this->crc_check_ || this->values_.crc_valid) {
-    this->publish_sensors(this->values_);
-    return true;
-  } else {
-    ESP_LOGE(TAG, "CRC check failed for telegram");
-    return false;
-  }
+  this->status_clear_warning();
+  this->publish_sensors(data);
+  return true;
 }
 
 void Dsmr::dump_config() {
@@ -357,7 +346,7 @@ void Dsmr::dump_config() {
   LOG_PIN("  Request Pin: ", this->request_pin_);
   ESP_LOGCONFIG(TAG, "  Request Interval: %.1fs", this->request_interval_ / 1000.0f);
   ESP_LOGCONFIG(TAG, "  Receive Timeout: %.1fs", this->receive_timeout_ / 1000.0f);
-  ESP_LOGCONFIG(TAG, "  Max Telegram Length: %u", this->max_telegram_len_);
+  ESP_LOGCONFIG(TAG, "  Max Telegram Length: %u", (unsigned) this->max_telegram_len_);
   ESP_LOGCONFIG(TAG, "  CRC Check: %s", YESNO(this->crc_check_));
   if (!this->decryption_key_.empty()) {
     ESP_LOGCONFIG(TAG, "  Decryption Key: (set)");
