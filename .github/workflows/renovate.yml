@@ -1,0 +1,40 @@
+---
+name: Renovate
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Friday 02:20 UTC = 04:20 CEST / 03:20 CET in Europe/Budapest.
+    # Both times fall inside the renovate.json schedule window
+    # "after 1am and before 5am on friday", regardless of DST.
+    # Repositories are staggered 10 minutes apart so that they do not
+    # all start at the same time.
+    - cron: "20 02 * * 5"
+
+concurrency:
+  group: renovate-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    name: Renovate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+      pull-requests: write
+      # required to read vulnerability alerts
+      security-events: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v46.2.6
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN || secrets.GITHUB_TOKEN }}
+          configurationFile: renovate.json
+        env:
+          LOG_LEVEL: debug
+          RENOVATE_REPOSITORIES: ${{ github.repository }}

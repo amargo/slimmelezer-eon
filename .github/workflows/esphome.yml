@@ -7,6 +7,13 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: esphome-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   compile:
     runs-on: ubuntu-latest
@@ -22,9 +29,9 @@ jobs:
           # - dev
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v7
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.esphome
           key: ${{ runner.os }}-esphome-cache-${{ matrix.esphome-version }}
@@ -39,7 +46,7 @@ jobs:
           grep -n -A2 'external_components' slimmelezer_*.yaml
 
       - name: ESPHome ${{ matrix.esphome-version }}
-        uses: esphome/build-action@v6
+        uses: esphome/build-action@v8.1.0
         with:
           yaml-file: ${{ matrix.file }}
           version: ${{ matrix.esphome-version }}
@@ -66,7 +73,7 @@ jobs:
           done
 
       - name: Upload firmware artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: firmware-${{ matrix.file }}-${{ matrix.esphome-version }}
           path: output
