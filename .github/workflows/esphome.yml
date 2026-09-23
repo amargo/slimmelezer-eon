@@ -14,6 +14,7 @@ jobs:
       max-parallel: 4
       matrix:
         file:
+          - slimmelezer_alap.yaml
           - slimmelezer_eth_napelemes.yaml
           - slimmelezer_napelemes.yaml
         esphome-version:
@@ -29,6 +30,14 @@ jobs:
           key: ${{ runner.os }}-esphome-cache-${{ matrix.esphome-version }}
           restore-keys: |
             ${{ runner.os }}-esphome-cache
+      - name: Build dsmr component from this checkout
+        run: |
+          set -eu
+          for f in slimmelezer_*.yaml; do
+            sed -i -e 's|^ *- source: github://amargo/slimmelezer-eon\[@main\]|  - source: components|' -e '/^ *refresh: 0s$/d' "$f"
+          done
+          grep -n -A2 'external_components' slimmelezer_*.yaml
+
       - name: ESPHome ${{ matrix.esphome-version }}
         uses: esphome/build-action@v6
         with:
